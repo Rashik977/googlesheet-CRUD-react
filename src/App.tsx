@@ -11,19 +11,28 @@ import {
 import { Button } from "./components/ui/button";
 import Shift from "./components/Shift";
 import Header from "./components/Header";
-import { readData } from "./GoogleSheetsComponent";
+import { readData as readRosterData } from "./RosterAPI";
 import { RowData } from "./interfaces/IRowData";
+import { ShiftData } from "./interfaces/IShiftData";
+import { readData as readShiftData } from "./components/ShiftAPI";
 
 const App = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [data, setData] = useState<RowData[]>([]);
-  const [filteredData, setFilteredData] = useState<RowData[]>([]);
+  const [rosterData, setRosterData] = useState<RowData[]>([]);
+  const [filteredRosterData, setFilteredRosterData] = useState<RowData[]>([]);
+
+  const [shiftData, setShiftData] = useState<ShiftData[]>([]);
+  const [filteredShiftData, setFilteredShiftData] = useState<ShiftData[]>([]);
 
   useEffect(() => {
-    readData().then((fetchedData) => {
-      setData(fetchedData);
-      setFilteredData(fetchedData);
+    readRosterData().then((fetchedData) => {
+      setRosterData(fetchedData);
+      setFilteredRosterData(fetchedData);
+    });
+    readShiftData().then((fetchedData) => {
+      setShiftData(fetchedData);
+      setFilteredShiftData(fetchedData);
     });
   }, []);
 
@@ -47,10 +56,10 @@ const App = () => {
           {/* Slide-in Sheet Content */}
           <SheetContent className="w-[60%] h-full overflow-auto">
             <Roster
-              data={data}
-              filteredData={filteredData}
-              setFilteredData={setFilteredData}
-              setData={setData}
+              data={rosterData}
+              filteredData={filteredRosterData}
+              setFilteredData={setFilteredRosterData}
+              setData={setRosterData}
             />
           </SheetContent>
         </div>
@@ -71,8 +80,13 @@ const App = () => {
           </SheetTrigger>
 
           {/* Slide-in Sheet Content */}
-          <SheetContent className="w-[60%] h-full">
-            <Shift />
+          <SheetContent className="w-[60%] h-full overflow-auto">
+            <Shift
+              data={shiftData}
+              filteredData={filteredShiftData}
+              setData={setShiftData}
+              setFilteredData={setFilteredShiftData}
+            />
           </SheetContent>
         </div>
       </Sheet>

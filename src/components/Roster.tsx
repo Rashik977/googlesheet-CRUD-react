@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { addData, readData, updateData } from "../GoogleSheetsComponent"; // import the updateData function
+import { addData, readData, updateData } from "../RosterAPI"; // import the updateData function
 import {
   FormControl,
   FormField,
@@ -100,7 +100,7 @@ const Roster: React.FC<RosterProps> = ({
             render={({ field }) => (
               <FormItem className="flex flex-col sm:flex-row gap-6 items-center ">
                 <FormLabel className="font-semibold text-lg">
-                  Project Name
+                  Project/Person Name
                 </FormLabel>
                 <FormControl>
                   <input
@@ -147,7 +147,7 @@ const Roster: React.FC<RosterProps> = ({
         <div className="flex justify-center my-4">
           <input
             type="text"
-            placeholder="Search by Project Name"
+            placeholder="Search by Project/Person Name"
             value={searchTerm}
             onChange={handleSearch}
             className="w-80 p-2 -800 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2 my-2"

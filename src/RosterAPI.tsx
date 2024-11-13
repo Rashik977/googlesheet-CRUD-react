@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_ROSTER_API_URL;
 
 // Fetch data from Google Sheets
 export const readData = async () => {
