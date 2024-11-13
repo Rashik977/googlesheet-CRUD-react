@@ -23,35 +23,27 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../components/ui/popover";
+import { RowData } from "@/interfaces/IRowData";
 
-interface RowData {
-  projectName: string;
-  projectLeader: string;
-  monday: string;
-  tuesday: string;
-  wednesday: string;
-  thursday: string;
-  friday: string;
+interface RosterProps {
+  data: RowData[];
+  filteredData: RowData[];
+  setFilteredData: React.Dispatch<React.SetStateAction<RowData[]>>;
+  setData: React.Dispatch<React.SetStateAction<RowData[]>>;
 }
 
-const Roster: React.FC = () => {
-  const [data, setData] = useState<RowData[]>([]);
-  const [filteredData, setFilteredData] = useState<RowData[]>([]);
+const Roster: React.FC<RosterProps> = ({
+  data,
+  filteredData,
+  setFilteredData,
+  setData,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
   const { handleSubmit } = useForm();
-
-  console.log(filteredData);
-
-  useEffect(() => {
-    readData().then((fetchedData) => {
-      setData(fetchedData);
-      setFilteredData(fetchedData);
-    });
-  }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -61,7 +53,7 @@ const Roster: React.FC = () => {
       const headerRow = data[0];
       const newFilteredData = data
         .slice(1)
-        .filter((row) =>
+        .filter((row: RowData) =>
           row.projectName.toLowerCase().includes(e.target.value.toLowerCase())
         );
       setFilteredData([headerRow, ...newFilteredData]);
@@ -96,14 +88,12 @@ const Roster: React.FC = () => {
 
   return (
     <>
-      <h1 className="text-4xl font-bold text-center py-12">
-        Roster Management
-      </h1>
+      <h1 className="text-4xl font-bold text-center py-4">Roster Management</h1>
 
       <FormProvider {...useForm()}>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex gap-8 items-center justify-center mt-10 mb-16 p-8 rounded-lg shadow-md"
+          className="flex gap-8 items-center justify-center p-8 rounded-lg shadow-md"
         >
           <FormField
             name="username"
@@ -160,7 +150,7 @@ const Roster: React.FC = () => {
             placeholder="Search by Project Name"
             value={searchTerm}
             onChange={handleSearch}
-            className="w-80 p-2 -800 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
+            className="w-80 p-2 -800 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2 my-2"
           />
         </div>
         {/* <Popover>
@@ -182,7 +172,7 @@ const Roster: React.FC = () => {
         </Popover> */}
       </div>
 
-      <Table className="w-[100%] mx-auto  rounded-lg shadow-lg overflow-hidden">
+      <Table className="w-[100%] mx-auto  rounded-lg shadow-lg">
         <TableCaption className="-400 py-4">
           A list of all members.
         </TableCaption>
