@@ -41,13 +41,15 @@ const Shift: React.FC<ShiftProps> = ({
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setFilteredData(
-      e.target.value
-        ? data.filter((row: ShiftData) =>
-            row.email.toLowerCase().includes(e.target.value.toLowerCase())
-          )
-        : data
-    );
+    const headerRow = data[0];
+
+    const newData = data
+      .slice(1)
+      .filter((row: ShiftData) =>
+        row.email.toLowerCase().includes(e.target.value.toLowerCase())
+      );
+
+    setFilteredData([headerRow, ...newData]);
   };
 
   const handleUpdate = async (
@@ -92,7 +94,7 @@ const Shift: React.FC<ShiftProps> = ({
       <FormProvider {...useForm()}>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex gap-8 items-center justify-center p-8 rounded-lg shadow-md"
+          className="flex flex-wrap gap-8 items-center justify-center p-8 rounded-lg shadow-md"
         >
           <FormField
             name="email"
@@ -171,80 +173,98 @@ const Shift: React.FC<ShiftProps> = ({
 
       <Table className="w-[100%] mx-auto rounded-lg shadow-lg">
         <TableCaption>A list of all shifts.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableCell>Email</TableCell>
-            <TableCell>Join Date</TableCell>
-            <TableCell>End Date</TableCell>
-            <TableCell>Monday</TableCell>
-            <TableCell>Tuesday</TableCell>
-            <TableCell>Wednesday</TableCell>
-            <TableCell>Thursday</TableCell>
-            <TableCell>Friday</TableCell>
-          </TableRow>
-        </TableHeader>
+
         <TableBody>
           {filteredData.map((row, index) => (
             <TableRow key={index}>
               <TableCell>{row.email}</TableCell>
               <TableCell>{row.joinDate}</TableCell>
               <TableCell>{row.endDate}</TableCell>
-              <TableCell>
-                <select
-                  value={row.monday}
-                  onChange={(e) => handleUpdate(index, 3, e.target.value)}
-                  className="bg-gray-200"
-                >
-                  <option value="DAY_SHIFT">DAY_SHIFT</option>
-                  <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                  <option value="LATE_EVENING_SHIFT">LATE_EVENING_SHIFT</option>
-                </select>
-              </TableCell>
-              <TableCell>
-                <select
-                  value={row.tuesday}
-                  onChange={(e) => handleUpdate(index, 4, e.target.value)}
-                  className="bg-gray-200"
-                >
-                  <option value="DAY_SHIFT">DAY_SHIFT</option>
-                  <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                  <option value="LATE_EVENING_SHIFT">LATE_EVENING_SHIFT</option>
-                </select>
-              </TableCell>
-              <TableCell>
-                <select
-                  value={row.wednesday}
-                  onChange={(e) => handleUpdate(index, 5, e.target.value)}
-                  className="bg-gray-200"
-                >
-                  <option value="DAY_SHIFT">DAY_SHIFT</option>
-                  <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                  <option value="LATE_EVENING_SHIFT">LATE_EVENING_SHIFT</option>
-                </select>
-              </TableCell>
-              <TableCell>
-                <select
-                  value={row.thursday}
-                  onChange={(e) => handleUpdate(index, 6, e.target.value)}
-                  className="bg-gray-200"
-                >
-                  <option value="DAY_SHIFT">DAY_SHIFT</option>
-                  <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                  <option value="LATE_EVENING_SHIFT">LATE_EVENING_SHIFT</option>
-                </select>
-              </TableCell>
-              <TableCell>
-                <select
-                  value={row.friday}
-                  onChange={(e) => handleUpdate(index, 7, e.target.value)}
-                  className="bg-gray-200"
-                >
-                  <option value="DAY_SHIFT">DAY_SHIFT</option>
-                  <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                  <option value="LATE_EVENING_SHIFT">LATE_EVENING_SHIFT</option>
-                </select>
-              </TableCell>
-              {/* Repeat similar TableCell and select for other weekdays */}
+
+              {index === 0 && (
+                <>
+                  <TableCell className="px-4 py-2">Monday</TableCell>
+                  <TableCell className="px-4 py-2">Tuesday</TableCell>
+                  <TableCell className="px-4 py-2">Wednesday</TableCell>
+                  <TableCell className="px-4 py-2">Thursday</TableCell>
+                  <TableCell className="px-4 py-2">Friday</TableCell>
+                </>
+              )}
+
+              {index > 0 && (
+                <>
+                  <TableCell>
+                    <select
+                      value={row.monday}
+                      onChange={(e) => handleUpdate(index, 4, e.target.value)}
+                      className="bg-gray-200"
+                    >
+                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
+                      <option value="DAY_SHIFT">DAY_SHIFT</option>
+                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
+                      <option value="LATE_EVENING_SHIFT">
+                        LATE_EVENING_SHIFT
+                      </option>
+                    </select>
+                  </TableCell>
+                  <TableCell>
+                    <select
+                      value={row.tuesday}
+                      onChange={(e) => handleUpdate(index, 5, e.target.value)}
+                      className="bg-gray-200"
+                    >
+                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
+                      <option value="DAY_SHIFT">DAY_SHIFT</option>
+                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
+                      <option value="LATE_EVENING_SHIFT">
+                        LATE_EVENING_SHIFT
+                      </option>
+                    </select>
+                  </TableCell>
+                  <TableCell>
+                    <select
+                      value={row.wednesday}
+                      onChange={(e) => handleUpdate(index, 6, e.target.value)}
+                      className="bg-gray-200"
+                    >
+                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
+                      <option value="DAY_SHIFT">DAY_SHIFT</option>
+                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
+                      <option value="LATE_EVENING_SHIFT">
+                        LATE_EVENING_SHIFT
+                      </option>
+                    </select>
+                  </TableCell>
+                  <TableCell>
+                    <select
+                      value={row.thursday}
+                      onChange={(e) => handleUpdate(index, 7, e.target.value)}
+                      className="bg-gray-200"
+                    >
+                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
+                      <option value="DAY_SHIFT">DAY_SHIFT</option>
+                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
+                      <option value="LATE_EVENING_SHIFT">
+                        LATE_EVENING_SHIFT
+                      </option>
+                    </select>
+                  </TableCell>
+                  <TableCell>
+                    <select
+                      value={row.friday}
+                      onChange={(e) => handleUpdate(index, 8, e.target.value)}
+                      className="bg-gray-200"
+                    >
+                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
+                      <option value="DAY_SHIFT">DAY_SHIFT</option>
+                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
+                      <option value="LATE_EVENING_SHIFT">
+                        LATE_EVENING_SHIFT
+                      </option>
+                    </select>
+                  </TableCell>
+                </>
+              )}
             </TableRow>
           ))}
         </TableBody>
