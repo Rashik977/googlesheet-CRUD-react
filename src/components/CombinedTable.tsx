@@ -52,7 +52,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
       // Prioritize WFO for each day
       const weeklyRoster = {
-        monday: "N/A",
+        monday: `N/A`,
         tuesday: "N/A",
         wednesday: "N/A",
         thursday: "N/A",
@@ -64,7 +64,9 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
           ["monday", "tuesday", "wednesday", "thursday", "friday"] as Day[]
         ).forEach((day) => {
           if (roster[day] === "WFO") {
-            weeklyRoster[day] = "WFO";
+            weeklyRoster[day] = `${
+              matchingShift?.[day] ? matchingShift?.[day] + "/" : ""
+            }  WFO`;
           } else if (roster[day] === "WFH" && weeklyRoster[day] !== "WFO") {
             weeklyRoster[day] = "WFH";
           }
