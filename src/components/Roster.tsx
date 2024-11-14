@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { addData, readData, updateData } from "../RosterAPI"; // import the updateData function
+import { addData, readData, updateData } from "../api/RosterAPI"; // import the updateData function
 import {
   FormControl,
   FormField,
@@ -42,6 +42,7 @@ const Roster: React.FC<RosterProps> = ({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [filteredRosterData, setFilteredRosterData] = useState<RowData[]>([]);
 
   const { handleSubmit } = useForm();
 

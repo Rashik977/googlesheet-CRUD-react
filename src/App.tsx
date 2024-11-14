@@ -11,10 +11,13 @@ import {
 import { Button } from "./components/ui/button";
 import Shift from "./components/Shift";
 import Header from "./components/Header";
-import { readData as readRosterData } from "./RosterAPI";
+import { readData as readRosterData } from "./api/RosterAPI";
 import { RowData } from "./interfaces/IRowData";
 import { ShiftData } from "./interfaces/IShiftData";
-import { readData as readShiftData } from "./components/ShiftAPI";
+import { readData as readShiftData } from "./api/ShiftAPI";
+import { MainData } from "./interfaces/IMainData";
+import { readMainData } from "./api/MainAPI";
+import CombinedTable from "./components/CombinedTable";
 
 const App = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,6 +28,8 @@ const App = () => {
   const [shiftData, setShiftData] = useState<ShiftData[]>([]);
   const [filteredShiftData, setFilteredShiftData] = useState<ShiftData[]>([]);
 
+  const [mainData, setMainData] = useState<MainData[]>([]);
+
   useEffect(() => {
     readRosterData().then((fetchedData) => {
       setRosterData(fetchedData);
@@ -33,6 +38,10 @@ const App = () => {
     readShiftData().then((fetchedData) => {
       setShiftData(fetchedData);
       setFilteredShiftData(fetchedData);
+    });
+
+    readMainData().then((fetchedData) => {
+      setMainData(fetchedData);
     });
   }, []);
 
@@ -90,6 +99,12 @@ const App = () => {
           </SheetContent>
         </div>
       </Sheet>
+
+      <CombinedTable
+        mainData={mainData}
+        rosterData={rosterData}
+        shiftData={shiftData}
+      />
     </>
   );
 };

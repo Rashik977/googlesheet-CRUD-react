@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { addData, readData, updateData } from "./ShiftAPI"; // import ShiftAPI functions
+import { addData, readData, updateData } from "../api/ShiftAPI"; // import ShiftAPI functions
 import {
   FormControl,
   FormField,
