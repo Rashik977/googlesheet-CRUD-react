@@ -226,11 +226,11 @@ const Roster: React.FC<RosterProps> = ({
                           onChange={(e) =>
                             handleUpdate(index, 3 + i, e.target.value, day)
                           }
-                          className={`w-[80px] h-[30px] rounded-lg text-white ${
+                          className={`w-[80px] h-[30px] rounded-l ${
                             row[day as keyof RowData] === "WFH"
-                              ? "bg-[#69c17c]"
+                              ? "bg-[#69c17c] text-white"
                               : row[day as keyof RowData] === "WFO"
-                              ? "bg-[#4a805b]"
+                              ? "bg-[#4a805b] text-white"
                               : "bg-white text-black"
                           }`}
                         >
