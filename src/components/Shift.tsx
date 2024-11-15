@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { addData, readData, updateData } from "../api/ShiftAPI"; // import ShiftAPI functions
+import React, { useState } from "react";
+import { addData, readData, updateData } from "../api/ShiftAPI";
 import {
   FormControl,
   FormField,
@@ -12,18 +12,25 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "../components/ui/button";
 import { FormProvider, useForm } from "react-hook-form";
 import { ShiftData } from "../interfaces/IShiftData";
+import { Loader2 } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface ShiftProps {
   data: ShiftData[];
   filteredData: ShiftData[];
   setFilteredData: React.Dispatch<React.SetStateAction<ShiftData[]>>;
   setData: React.Dispatch<React.SetStateAction<ShiftData[]>>;
+}
+
+interface LoadingCell {
+  row: number;
+  day: string;
 }
 
 const Shift: React.FC<ShiftProps> = ({
@@ -36,8 +43,21 @@ const Shift: React.FC<ShiftProps> = ({
   const [email, setEmail] = useState("");
   const [joinDate, setJoinDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [loadingCells, setLoadingCells] = useState<LoadingCell[]>([]);
 
   const { handleSubmit } = useForm();
+
+  const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+  const shiftOptions = [
+    "MORNING_SHIFT",
+    "DAY_SHIFT",
+    "EVENING_SHIFT",
+    "LATE_EVENING_SHIFT",
+  ];
+
+  const isLoading = (row: number, day: string) => {
+    return loadingCells.some((cell) => cell.row === row && cell.day === day);
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -55,41 +75,76 @@ const Shift: React.FC<ShiftProps> = ({
   const handleUpdate = async (
     rowIndex: number,
     column: number,
-    value: string
+    value: string,
+    day: string
   ) => {
+    setLoadingCells((prev) => [...prev, { row: rowIndex, day }]);
+
     const actualRowIndex = data.findIndex(
       (row) => row === filteredData[rowIndex]
     );
-    await updateData(actualRowIndex + 1, column, value);
-    readData().then((fetchedData) => {
+
+    try {
+      await updateData(actualRowIndex + 1, column, value);
+      const fetchedData = await readData();
       setData(fetchedData);
-      setFilteredData(
-        fetchedData.filter((row: ShiftData) =>
+
+      // Apply the current search filter to the updated data
+      const headerRow = fetchedData[0];
+      const filteredRows = fetchedData
+        .slice(1)
+        .filter((row: ShiftData) =>
           row.email.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        );
+
+      setFilteredData([headerRow, ...filteredRows]);
+
+      toast.success("Shift updated successfully!");
+    } catch {
+      toast.error("Failed to update shift!");
+    } finally {
+      setLoadingCells((prev) =>
+        prev.filter((cell) => !(cell.row === rowIndex && cell.day === day))
       );
-    });
+    }
+  };
+
+  const dateConverter = (date: string) => {
+    const [year, month, day] = date.split("T")[0].split("-");
+    return `${year}/${month}/${day}`;
   };
 
   const onSubmit = async () => {
-    await addData({
-      email,
-      joinDate,
-      endDate,
-      monday: "",
-      tuesday: "",
-      wednesday: "",
-      thursday: "",
-      friday: "",
-    });
-    readData().then((fetchedData) => {
+    try {
+      toast.loading("Adding shift...");
+      await addData({
+        email,
+        joinDate,
+        endDate,
+        monday: "",
+        tuesday: "",
+        wednesday: "",
+        thursday: "",
+        friday: "",
+      });
+      const fetchedData = await readData();
       setData(fetchedData);
-    });
+      toast.dismiss();
+      toast.success("Shift added successfully!");
+
+      // Clear form fields
+      setEmail("");
+      setJoinDate("");
+      setEndDate("");
+    } catch {
+      toast.error("Failed to add shift!");
+    }
   };
 
   return (
     <>
       <h1 className="text-4xl font-bold text-center py-4">Shift Management</h1>
+      <ToastContainer />
 
       <FormProvider {...useForm()}>
         <form
@@ -124,7 +179,7 @@ const Shift: React.FC<ShiftProps> = ({
                 </FormLabel>
                 <FormControl>
                   <input
-                    placeholder="MM/DD"
+                    placeholder="YYYY/MM/DD"
                     {...field}
                     onChange={(e) => setJoinDate(e.target.value)}
                     type="text"
@@ -145,7 +200,7 @@ const Shift: React.FC<ShiftProps> = ({
                 </FormLabel>
                 <FormControl>
                   <input
-                    placeholder="MM/DD"
+                    placeholder="YYYY/MM/DD"
                     {...field}
                     onChange={(e) => setEndDate(e.target.value)}
                     type="text"
@@ -178,91 +233,73 @@ const Shift: React.FC<ShiftProps> = ({
           {filteredData.map((row, index) => (
             <TableRow key={index}>
               <TableCell>{row.email}</TableCell>
-              <TableCell>{row.joinDate}</TableCell>
-              <TableCell>{row.endDate}</TableCell>
 
               {index === 0 && (
                 <>
-                  <TableCell className="px-4 py-2">Monday</TableCell>
-                  <TableCell className="px-4 py-2">Tuesday</TableCell>
-                  <TableCell className="px-4 py-2">Wednesday</TableCell>
-                  <TableCell className="px-4 py-2">Thursday</TableCell>
-                  <TableCell className="px-4 py-2">Friday</TableCell>
+                  <TableCell>Join Date</TableCell>
+                  <TableCell>End Date</TableCell>
                 </>
               )}
 
               {index > 0 && (
                 <>
-                  <TableCell>
-                    <select
-                      value={row.monday}
-                      onChange={(e) => handleUpdate(index, 4, e.target.value)}
-                      className="bg-gray-200"
-                    >
-                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
-                      <option value="DAY_SHIFT">DAY_SHIFT</option>
-                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                      <option value="LATE_EVENING_SHIFT">
-                        LATE_EVENING_SHIFT
-                      </option>
-                    </select>
+                  <TableCell className="px-4 py-2">
+                    {dateConverter(row.joinDate)}
                   </TableCell>
-                  <TableCell>
-                    <select
-                      value={row.tuesday}
-                      onChange={(e) => handleUpdate(index, 5, e.target.value)}
-                      className="bg-gray-200"
-                    >
-                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
-                      <option value="DAY_SHIFT">DAY_SHIFT</option>
-                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                      <option value="LATE_EVENING_SHIFT">
-                        LATE_EVENING_SHIFT
-                      </option>
-                    </select>
+                  <TableCell className="px-4 py-2">
+                    {dateConverter(row.endDate)}
                   </TableCell>
-                  <TableCell>
-                    <select
-                      value={row.wednesday}
-                      onChange={(e) => handleUpdate(index, 6, e.target.value)}
-                      className="bg-gray-200"
-                    >
-                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
-                      <option value="DAY_SHIFT">DAY_SHIFT</option>
-                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                      <option value="LATE_EVENING_SHIFT">
-                        LATE_EVENING_SHIFT
-                      </option>
-                    </select>
-                  </TableCell>
-                  <TableCell>
-                    <select
-                      value={row.thursday}
-                      onChange={(e) => handleUpdate(index, 7, e.target.value)}
-                      className="bg-gray-200"
-                    >
-                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
-                      <option value="DAY_SHIFT">DAY_SHIFT</option>
-                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                      <option value="LATE_EVENING_SHIFT">
-                        LATE_EVENING_SHIFT
-                      </option>
-                    </select>
-                  </TableCell>
-                  <TableCell>
-                    <select
-                      value={row.friday}
-                      onChange={(e) => handleUpdate(index, 8, e.target.value)}
-                      className="bg-gray-200"
-                    >
-                      <option value="MORNING_SHIFT">MORNING_SHIFT</option>
-                      <option value="DAY_SHIFT">DAY_SHIFT</option>
-                      <option value="EVENING_SHIFT">EVENING_SHIFT</option>
-                      <option value="LATE_EVENING_SHIFT">
-                        LATE_EVENING_SHIFT
-                      </option>
-                    </select>
-                  </TableCell>
+                </>
+              )}
+              {index === 0 && (
+                <>
+                  {weekdays.map((day, i) => (
+                    <TableCell key={i} className="px-4 py-2">
+                      {day.charAt(0).toUpperCase() + day.slice(1)}
+                    </TableCell>
+                  ))}
+                </>
+              )}
+
+              {index > 0 && (
+                <>
+                  {weekdays.map((day, i) => (
+                    <TableCell key={i}>
+                      {isLoading(index, day) ? (
+                        <div className="flex items-center justify-center w-[180px] h-[30px]">
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                        </div>
+                      ) : (
+                        <select
+                          value={row[day as keyof ShiftData]}
+                          onChange={(e) =>
+                            handleUpdate(index, 4 + i, e.target.value, day)
+                          }
+                          className={`w-[180px] h-[30px] rounded-lg ${
+                            row[day as keyof ShiftData] === "MORNING_SHIFT"
+                              ? "bg-[#fee5a0]"
+                              : row[day as keyof ShiftData] === "DAY_SHIFT"
+                              ? "bg-[#E8EAED]"
+                              : row[day as keyof ShiftData] === "EVENING_SHIFT"
+                              ? "bg-[#F6C7A9]"
+                              : row[day as keyof ShiftData] ===
+                                "LATE_EVENING_SHIFT"
+                              ? "bg-[#3D3D3D] text-white"
+                              : "bg-white"
+                          }`}
+                        >
+                          {!row[day as keyof ShiftData] && (
+                            <option value="">{"Select Shift"}</option>
+                          )}
+                          {shiftOptions.map((shift, j) => (
+                            <option key={j} value={shift}>
+                              {shift}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </TableCell>
+                  ))}
                 </>
               )}
             </TableRow>
