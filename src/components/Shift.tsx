@@ -125,6 +125,18 @@ const Shift: React.FC<ShiftProps> = ({
       });
       const fetchedData = await readData();
       setData(fetchedData);
+      // Update filtered data while maintaining any existing search filter
+      const headerRow = fetchedData[0];
+      const newFilteredData = fetchedData
+        .slice(1)
+        .filter((row: ShiftData) =>
+          searchTerm
+            ? row.email.toLowerCase().includes(searchTerm.toLowerCase())
+            : true
+        );
+
+      setFilteredData([headerRow, ...newFilteredData]);
+
       toast.dismiss();
       toast.success("Shift added successfully!");
 

@@ -104,6 +104,19 @@ const Roster: React.FC<RosterProps> = ({
       await addData(name, email);
       const fetchedData = await readData();
       setData(fetchedData);
+
+      // Update filtered data while maintaining any existing search filter
+      const headerRow = fetchedData[0];
+      const newFilteredData = fetchedData
+        .slice(1)
+        .filter((row: RowData) =>
+          searchTerm
+            ? row.projectName.toLowerCase().includes(searchTerm.toLowerCase())
+            : true
+        );
+
+      setFilteredData([headerRow, ...newFilteredData]);
+
       toast.dismiss();
       toast.success("Roster added successfully!");
 
@@ -204,7 +217,7 @@ const Roster: React.FC<RosterProps> = ({
                   {weekdays.map((day, i) => (
                     <TableCell key={i}>
                       {isLoading(index, day) ? (
-                        <div className="flex items-center justify-center w-[180px] h-[30px]">
+                        <div className="flex items-center justify-center w-[80px] h-[30px]">
                           <Loader2 className="h-6 w-6 animate-spin" />
                         </div>
                       ) : (
@@ -216,7 +229,9 @@ const Roster: React.FC<RosterProps> = ({
                           className={`w-[80px] h-[30px] rounded-lg text-white ${
                             row[day as keyof RowData] === "WFH"
                               ? "bg-[#69c17c]"
-                              : "bg-[#4a805b]"
+                              : row[day as keyof RowData] === "WFO"
+                              ? "bg-[#4a805b]"
+                              : "bg-white text-black"
                           }`}
                         >
                           {!row[day as keyof RowData] && (
