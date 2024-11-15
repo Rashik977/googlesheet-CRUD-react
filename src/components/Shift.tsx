@@ -20,17 +20,13 @@ import { ShiftData } from "../interfaces/IShiftData";
 import { Loader2 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { LoadingCell } from "@/interfaces/ILoadingCell";
 
 interface ShiftProps {
   data: ShiftData[];
   filteredData: ShiftData[];
   setFilteredData: React.Dispatch<React.SetStateAction<ShiftData[]>>;
   setData: React.Dispatch<React.SetStateAction<ShiftData[]>>;
-}
-
-interface LoadingCell {
-  row: number;
-  day: string;
 }
 
 const Shift: React.FC<ShiftProps> = ({
