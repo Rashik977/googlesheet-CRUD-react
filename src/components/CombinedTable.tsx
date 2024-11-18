@@ -11,6 +11,9 @@ import { MainData } from "../interfaces/IMainData";
 import { RowData } from "../interfaces/IRowData";
 import { ShiftData } from "../interfaces/IShiftData";
 import { CombinedData } from "@/interfaces/ICombinedData";
+import { Button } from "./ui/button";
+import axios from "axios";
+import { LogEntry } from "@/interfaces/ILog";
 
 interface CombinedTableProps {
   mainData: MainData[];
@@ -33,6 +36,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   shiftData,
 }) => {
   const [combinedData, setCombinedData] = useState<CombinedData[]>([]);
+  const [originalData, setOriginalData] = useState<CombinedData[]>([]);
 
   useEffect(() => {
     if (
@@ -99,6 +103,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     });
     // Set combined data to state
     setCombinedData(Array.from(combinedDataMap.values()));
+    setOriginalData(Array.from(combinedDataMap.values()));
   }, [mainData, rosterData, shiftData]);
 
   const handleValueChange = (
@@ -146,8 +151,71 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     }
   };
 
+  const handleLog = async () => {
+    const changes: LogEntry[] = [];
+
+    // Compare originalData with combinedData to find changes
+    combinedData.forEach((currentRow: any, index) => {
+      const originalRow = originalData[index] as any;
+
+      weekdays.forEach((day: any) => {
+        const [currentRoster, currentShift] = currentRow[day]
+          .split("/")
+          .map((v) => v.trim());
+        const [originalRoster, originalShift] = originalRow[day]
+          .split("/")
+          .map((v) => v.trim());
+
+        // Check for roster changes
+        if (currentRoster !== originalRoster && originalRoster !== "N/A") {
+          changes.push({
+            email: currentRow.email,
+            day,
+            field: "roster",
+            oldValue: originalRoster,
+            newValue: currentRoster,
+            changedBy: "user@example.com", // Replace with actual user email
+          });
+        }
+
+        // Check for shift changes
+        if (currentShift !== originalShift && originalShift !== "N/A") {
+          changes.push({
+            email: currentRow.email,
+            day,
+            field: "shift",
+            oldValue: originalShift,
+            newValue: currentShift,
+            changedBy: "user@example.com", // Replace with actual user email
+          });
+        }
+      });
+    });
+
+    // Only send request if there are changes
+    if (changes.length > 0) {
+      try {
+        await axios.post(import.meta.env.VITE_LOG_API_URL, null, {
+          params: {
+            action: "log",
+            logs: JSON.stringify(changes),
+          },
+        });
+
+        // Update originalData to reflect current state
+        setOriginalData([...combinedData]);
+
+        console.log("Changes logged successfully");
+      } catch (error) {
+        console.error("Error logging changes:", error);
+      }
+    } else {
+      console.log("No changes to log");
+    }
+  };
+
   return (
-    <div className="w-[95%] flex justify-center">
+    <div className="w-[95%] flex flex-col justify-center items-center">
       <Table className="w-[90%] mx-auto rounded-lg shadow-lg">
         <TableCaption className="text-lg py-4">
           Combined Roster, Shift, and Main Data
@@ -237,6 +305,10 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
           )}
         </TableBody>
       </Table>
+
+      <Button className="m-4 w-16 flex-end p-5" onClick={handleLog}>
+        LOG
+      </Button>
     </div>
   );
 };
