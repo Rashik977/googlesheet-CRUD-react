@@ -45,8 +45,8 @@ const Shift: React.FC<ShiftProps> = ({
 
   const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
   const shiftOptions = [
-    "MORNING_SHIFT",
     "DAY_SHIFT",
+    "MORNING_SHIFT",
     "EVENING_SHIFT",
     "LATE_EVENING_SHIFT",
   ];
@@ -117,11 +117,11 @@ const Shift: React.FC<ShiftProps> = ({
         email,
         joinDate,
         endDate,
-        monday: "",
-        tuesday: "",
-        wednesday: "",
-        thursday: "",
-        friday: "",
+        monday: "DAY_SHIFT",
+        tuesday: "DAY_SHIFT",
+        wednesday: "DAY_SHIFT",
+        thursday: "DAY_SHIFT",
+        friday: "DAY_SHIFT",
       });
       const fetchedData = await readData();
       setData(fetchedData);
@@ -296,9 +296,6 @@ const Shift: React.FC<ShiftProps> = ({
                               : "bg-white"
                           }`}
                         >
-                          {!row[day as keyof ShiftData] && (
-                            <option value="">{"Select Shift"}</option>
-                          )}
                           {shiftOptions.map((shift, j) => (
                             <option key={j} value={shift}>
                               {shift}

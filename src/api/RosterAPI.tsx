@@ -1,5 +1,5 @@
+import { RowData } from "@/interfaces/IRowData";
 import axios from "axios";
-
 const API_URL = import.meta.env.VITE_ROSTER_API_URL;
 
 // Fetch data from Google Sheets
@@ -22,13 +22,18 @@ export const readData = async () => {
 };
 
 // Function to add data to Google Sheets
-export const addData = async (name: string, email: string) => {
+export const addData = async (rowData: RowData) => {
   try {
     await axios.post(API_URL, null, {
       params: {
         action: "create",
-        projectName: name,
-        projectLeader: email,
+        projectName: rowData.projectName,
+        projectLeader: rowData.projectLeader,
+        monday: rowData.monday,
+        tuesday: rowData.tuesday,
+        wednesday: rowData.wednesday,
+        thursday: rowData.thursday,
+        friday: rowData.friday,
       },
     });
     console.log("Data added successfully");

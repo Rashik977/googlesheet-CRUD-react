@@ -37,23 +37,32 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
     const combinedDataMap = new Map();
 
-    mainData.slice(1).forEach((main) => {
-      const matchingShift = shiftData.find(
-        (shift) => shift.email === main.email
+    const mainDataByEmail = mainData.slice(1).reduce((acc, curr) => {
+      if (!acc.has(curr.email)) {
+        acc.set(curr.email, []);
+      }
+      acc.get(curr.email).push(curr);
+      return acc;
+    }, new Map());
+
+    mainDataByEmail.forEach((personAllocations, email) => {
+      const matchingShift = shiftData.find((shift) => shift.email === email);
+
+      const allProjectRosters = personAllocations.flatMap(
+        (allocation: MainData) =>
+          rosterData.filter(
+            (roster) => roster.projectName === allocation.allocation
+          )
       );
-      const matchingProjectRoster = rosterData.filter(
-        (roster) => roster.projectName === main.allocation
-      );
+
       const matchingPeopleRoster = rosterData.filter(
-        (roster) => roster.projectName === main.email
+        (roster) => roster.projectName === email
       );
 
-      // Consolidate rosters
-      const allRosters = [...matchingProjectRoster, ...matchingPeopleRoster];
+      const allRosters = [...allProjectRosters, ...matchingPeopleRoster];
 
-      // Prioritize WFO for each day
       const weeklyRoster = {
-        monday: `N/A`,
+        monday: "N/A",
         tuesday: "N/A",
         wednesday: "N/A",
         thursday: "N/A",
@@ -63,24 +72,34 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
       (allRosters as RowData[]).forEach((roster) => {
         (weekdays as (keyof typeof weeklyRoster)[]).forEach((day) => {
           if (roster[day] === "WFO") {
-            weeklyRoster[day] = `${
-              matchingShift?.[day] ? matchingShift?.[day] + "/" : ""
-            }  WFO`;
-          } else if (roster[day] === "WFH" && weeklyRoster[day] !== "WFO") {
-            weeklyRoster[day] = "WFH";
+            weeklyRoster[day] = `WFO`;
+          } else if (roster[day] === "WFH") {
+            if (weeklyRoster[day] !== "WFO") {
+              weeklyRoster[day] = `WFH`;
+            }
           }
         });
       });
 
-      // Combine main data, shift, and prioritized weekly roster
+      (weekdays as (keyof typeof weeklyRoster)[]).forEach((day) => {
+        weeklyRoster[day] = `${weeklyRoster[day]}/ ${
+          matchingShift?.[day] || ""
+        }`;
+      });
+
+      // Create combined record using the first allocation's data for display
+      const baseAllocation = personAllocations[0];
       const combinedRecord = {
-        ...main,
-        ...matchingShift,
+        ...baseAllocation,
+        projectName: baseAllocation.projectName || "N/A",
+        allocation: personAllocations
+          .map((a: MainData) => a.allocation)
+          .join(", "),
         ...weeklyRoster,
       };
 
-      // Ensure no duplicates by setting by email
-      combinedDataMap.set(main.email, combinedRecord);
+      // Set combined data by email
+      combinedDataMap.set(email, combinedRecord);
     });
 
     // Set combined data to state
@@ -96,7 +115,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
         <TableHeader>
           <TableRow>
             <TableCell>Email</TableCell>
-            <TableCell>Project/Person Name</TableCell>
             <TableCell>Allocation</TableCell>
             <TableCell>Monday</TableCell>
             <TableCell>Tuesday</TableCell>
@@ -110,7 +128,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
             combinedData.map((row: CombinedData, index: number) => (
               <TableRow key={index}>
                 <TableCell>{row.email}</TableCell>
-                <TableCell>{row.projectName || "N/A"}</TableCell>
                 <TableCell>{row.allocation || "N/A"}</TableCell>
                 <TableCell>{row.monday || "N/A"}</TableCell>
                 <TableCell>{row.tuesday || "N/A"}</TableCell>

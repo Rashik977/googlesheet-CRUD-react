@@ -101,7 +101,15 @@ const Roster: React.FC<RosterProps> = ({
   const onSubmit = async () => {
     try {
       toast.loading("Adding roster...");
-      await addData(name, email);
+      await addData({
+        projectName: name,
+        projectLeader: email,
+        monday: "WFH",
+        tuesday: "WFH",
+        wednesday: "WFH",
+        thursday: "WFH",
+        friday: "WFH",
+      });
       const fetchedData = await readData();
       setData(fetchedData);
 
@@ -234,9 +242,6 @@ const Roster: React.FC<RosterProps> = ({
                               : "bg-white text-black"
                           }`}
                         >
-                          {!row[day as keyof RowData] && (
-                            <option value="">{"Select Option"}</option>
-                          )}
                           {rosterOptions.map((option, j) => (
                             <option key={j} value={option}>
                               {option}
