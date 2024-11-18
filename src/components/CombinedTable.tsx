@@ -108,7 +108,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     value: string
   ) => {
     setCombinedData((prevData) => {
-      const newData = [...prevData];
+      const newData = [...prevData] as any;
       const currentValues = newData[rowIndex][day].split("/");
 
       if (type === "roster") {
@@ -165,14 +165,14 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
         </TableHeader>
         <TableBody>
           {combinedData.length > 0 ? (
-            combinedData.map((row, index) => (
+            combinedData.map((row: any, index) => (
               <TableRow key={index}>
                 <TableCell>{row.email}</TableCell>
                 <TableCell>{row.allocation}</TableCell>
                 {weekdays.map((day) => {
                   const [rosterValue, shiftValue] = row[day]
                     .split("/")
-                    .map((v) => v.trim());
+                    .map((v: string) => v.trim());
                   return (
                     <TableCell key={day} className="p-2">
                       <div className="flex flex-col gap-1">
