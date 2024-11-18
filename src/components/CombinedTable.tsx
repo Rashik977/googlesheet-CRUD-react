@@ -161,10 +161,10 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
       weekdays.forEach((day: any) => {
         const [currentRoster, currentShift] = currentRow[day]
           .split("/")
-          .map((v) => v.trim());
+          .map((v: string) => v.trim());
         const [originalRoster, originalShift] = originalRow[day]
           .split("/")
-          .map((v) => v.trim());
+          .map((v: string) => v.trim());
 
         // Check for roster changes
         if (currentRoster !== originalRoster && originalRoster !== "N/A") {
