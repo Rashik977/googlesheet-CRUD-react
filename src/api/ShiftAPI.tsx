@@ -3,8 +3,6 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_SHIFT_API_URL;
 
-// Type definition for shift data
-
 // Fetch data from Google Sheets
 export const readData = async () => {
   try {
