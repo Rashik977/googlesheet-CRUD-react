@@ -157,70 +157,75 @@ const Shift: React.FC<ShiftProps> = ({
       <FormProvider {...useForm()}>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-wrap gap-8 items-center justify-center p-8 rounded-lg shadow-md"
+          className="flex flex-wrap gap-5 items-center p-8 rounded-lg shadow-md"
         >
-          <FormField
-            name="email"
-            render={({ field }) => (
-              <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
-                <FormLabel className="font-semibold text-lg">Email</FormLabel>
-                <FormControl>
-                  <input
-                    placeholder="Enter employee email"
-                    {...field}
-                    onChange={(e) => setEmail(e.target.value)}
-                    type="text"
-                    value={email}
-                    className="w-60 p-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="joinDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
-                <FormLabel className="font-semibold text-lg">
-                  Join Date
-                </FormLabel>
-                <FormControl>
-                  <input
-                    placeholder="YYYY/MM/DD"
-                    {...field}
-                    onChange={(e) => setJoinDate(e.target.value)}
-                    type="text"
-                    value={joinDate}
-                    className="w-60 p-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="endDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
-                <FormLabel className="font-semibold text-lg">
-                  End Date
-                </FormLabel>
-                <FormControl>
-                  <input
-                    placeholder="YYYY/MM/DD"
-                    {...field}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    type="text"
-                    value={endDate}
-                    className="w-60 p-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button className="px-10 py-5">Add Shift</Button>
+          <div className="flex gap-5">
+            <FormField
+              name="email"
+              render={({ field }) => (
+                <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
+                  <FormLabel className="font-semibold text-lg">Email</FormLabel>
+                  <FormControl>
+                    <input
+                      placeholder="Enter employee email"
+                      {...field}
+                      onChange={(e) => setEmail(e.target.value)}
+                      type="text"
+                      value={email}
+                      className="w-60 p-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="joinDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
+                  <FormLabel className="font-semibold text-lg">
+                    Join Date
+                  </FormLabel>
+                  <FormControl>
+                    <input
+                      placeholder="YYYY/MM/DD"
+                      {...field}
+                      onChange={(e) => setJoinDate(e.target.value)}
+                      type="text"
+                      value={joinDate}
+                      className="w-60 p-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="endDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
+                  <FormLabel className="font-semibold text-lg">
+                    End Date
+                  </FormLabel>
+                  <FormControl>
+                    <input
+                      placeholder="YYYY/MM/DD"
+                      {...field}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      type="text"
+                      value={endDate}
+                      className="w-60 p-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="flex justify-center items-center w-full">
+            <Button className="px-10 py-5">Add Shift</Button>
+          </div>
         </form>
       </FormProvider>
 
