@@ -121,7 +121,8 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
         (a, b) =>
           new Date(b.timestamp || "").getTime() -
           new Date(a.timestamp || "").getTime()
-      );
+      )
+      .slice(0, 3);
   };
 
   const formatDateTime = (timestamp?: string) => {
@@ -168,11 +169,11 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
         : "bg-white text-black";
     } else {
       return value === "MORNING"
-        ? "bg-[#fee5a0]"
+        ? "bg-[#fee5a0] text-black"
         : value === "DAY"
-        ? "bg-[#E8EAED]"
+        ? "bg-[#E8EAED] text-black"
         : value === "EVENING"
-        ? "bg-[#F6C7A9]"
+        ? "bg-[#F6C7A9] text-black"
         : value === "LATE"
         ? "bg-[#3D3D3D] text-white"
         : "bg-white";
@@ -337,19 +338,23 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                                         {log.field}:
                                       </span>{" "}
                                       <span
-                                        className={getSelectStyle(
-                                          log.field as "roster" | "shift",
-                                          log.oldValue
-                                        )}
+                                        className={
+                                          getSelectStyle(
+                                            log.field as "roster" | "shift",
+                                            log.oldValue
+                                          ) + " p-[3px] rounded-md"
+                                        }
                                       >
                                         {log.oldValue}
                                       </span>
                                       {" → "}
                                       <span
-                                        className={getSelectStyle(
-                                          log.field as "roster" | "shift",
-                                          log.newValue
-                                        )}
+                                        className={
+                                          getSelectStyle(
+                                            log.field as "roster" | "shift",
+                                            log.newValue
+                                          ) + " p-[3px] rounded-md"
+                                        }
                                       >
                                         {log.newValue}
                                       </span>
