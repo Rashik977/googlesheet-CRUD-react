@@ -17,7 +17,7 @@ import { LogEntry } from "@/interfaces/ILog";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import TruncatedCell from "./TruncatedCell";
-import { shifts } from "@/constants/constants";
+import { roster, shifts, weekdays } from "@/constants/constants";
 import { readLogData, setLogData } from "@/api/LogAPI";
 
 interface CombinedTableProps {
@@ -25,15 +25,6 @@ interface CombinedTableProps {
   rosterData: RowData[];
   shiftData: ShiftData[];
 }
-
-const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-const rosterOptions = ["WFH", "WFO"];
-const shiftOptions = [
-  "DAY_SHIFT",
-  "MORNING_SHIFT",
-  "EVENING_SHIFT",
-  "LATE_EVENING_SHIFT",
-];
 
 const CombinedTable: React.FC<CombinedTableProps> = ({
   mainData,
@@ -269,7 +260,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                           )}`}
                         >
                           <option value="N/A">N/A</option>
-                          {rosterOptions.map((option) => (
+                          {Object.values(roster).map((option) => (
                             <option key={option} value={option}>
                               {option}
                             </option>
