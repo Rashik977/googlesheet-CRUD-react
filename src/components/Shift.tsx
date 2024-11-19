@@ -21,6 +21,7 @@ import { Loader2 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LoadingCell } from "@/interfaces/ILoadingCell";
+import { shifts, weekdays } from "@/constants/constants";
 
 interface ShiftProps {
   data: ShiftData[];
@@ -43,13 +44,12 @@ const Shift: React.FC<ShiftProps> = ({
 
   const { handleSubmit } = useForm();
 
-  const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-  const shiftOptions = [
-    "DAY_SHIFT",
-    "MORNING_SHIFT",
-    "EVENING_SHIFT",
-    "LATE_EVENING_SHIFT",
-  ];
+  // const shiftOptions = [
+  //   "DAY_SHIFT",
+  //   "MORNING_SHIFT",
+  //   "EVENING_SHIFT",
+  //   "LATE_EVENING_SHIFT",
+  // ];
 
   const isLoading = (row: number, day: string) => {
     return loadingCells.some((cell) => cell.row === row && cell.day === day);
@@ -288,20 +288,19 @@ const Shift: React.FC<ShiftProps> = ({
                           onChange={(e) =>
                             handleUpdate(index, 4 + i, e.target.value, day)
                           }
-                          className={`w-[180px] h-[30px] rounded-lg ${
-                            row[day as keyof ShiftData] === "MORNING_SHIFT"
+                          className={`w-[100px] h-[30px] rounded-lg ${
+                            row[day as keyof ShiftData] === "MORNING"
                               ? "bg-[#fee5a0]"
-                              : row[day as keyof ShiftData] === "DAY_SHIFT"
+                              : row[day as keyof ShiftData] === "DAY"
                               ? "bg-[#E8EAED]"
-                              : row[day as keyof ShiftData] === "EVENING_SHIFT"
+                              : row[day as keyof ShiftData] === "EVENING"
                               ? "bg-[#F6C7A9]"
-                              : row[day as keyof ShiftData] ===
-                                "LATE_EVENING_SHIFT"
+                              : row[day as keyof ShiftData] === "LATE"
                               ? "bg-[#3D3D3D] text-white"
                               : "bg-white"
                           }`}
                         >
-                          {shiftOptions.map((shift, j) => (
+                          {Object.values(shifts).map((shift, j) => (
                             <option key={j} value={shift}>
                               {shift}
                             </option>

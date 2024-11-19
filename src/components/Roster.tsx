@@ -21,6 +21,7 @@ import { Loader2 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LoadingCell } from "@/interfaces/ILoadingCell";
+import { roster, weekdays } from "@/constants/constants";
 
 interface RosterProps {
   data: RowData[];
@@ -41,9 +42,6 @@ const Roster: React.FC<RosterProps> = ({
   const [loadingCells, setLoadingCells] = useState<LoadingCell[]>([]);
 
   const { handleSubmit } = useForm();
-
-  const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-  const rosterOptions = ["WFH", "WFO"];
 
   const isLoading = (row: number, day: string) => {
     return loadingCells.some((cell) => cell.row === row && cell.day === day);
@@ -242,7 +240,7 @@ const Roster: React.FC<RosterProps> = ({
                               : "bg-white text-black"
                           }`}
                         >
-                          {rosterOptions.map((option, j) => (
+                          {Object.values(roster).map((option, j) => (
                             <option key={j} value={option}>
                               {option}
                             </option>

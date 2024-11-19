@@ -12,11 +12,13 @@ import { RowData } from "../interfaces/IRowData";
 import { ShiftData } from "../interfaces/IShiftData";
 import { CombinedData } from "@/interfaces/ICombinedData";
 import { Button } from "./ui/button";
-import axios from "axios";
 import { LogEntry } from "@/interfaces/ILog";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import TruncatedCell from "./TruncatedCell";
+import { shifts } from "@/constants/constants";
+import { readLogData, setLogData } from "@/api/LogAPI";
 
 interface CombinedTableProps {
   mainData: MainData[];
@@ -40,7 +42,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 }) => {
   const [combinedData, setCombinedData] = useState<CombinedData[]>([]);
   const [originalData, setOriginalData] = useState<CombinedData[]>([]);
-
   useEffect(() => {
     if (
       mainData.length === 0 ||
@@ -142,13 +143,13 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
         ? "bg-[#4a805b] text-white"
         : "bg-white text-black";
     } else {
-      return value === "MORNING_SHIFT"
+      return value === "MORNING"
         ? "bg-[#fee5a0]"
-        : value === "DAY_SHIFT"
+        : value === "DAY"
         ? "bg-[#E8EAED]"
-        : value === "EVENING_SHIFT"
+        : value === "EVENING"
         ? "bg-[#F6C7A9]"
-        : value === "LATE_EVENING_SHIFT"
+        : value === "LATE"
         ? "bg-[#3D3D3D] text-white"
         : "bg-white";
     }
@@ -199,13 +200,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
       // Only send request if there are changes
       if (changes.length > 0) {
         try {
-          await axios.post(import.meta.env.VITE_LOG_API_URL, null, {
-            params: {
-              action: "log",
-              logs: JSON.stringify(changes),
-            },
-          });
-
+          await setLogData(changes);
           // Update originalData to reflect current state
           setOriginalData([...combinedData]);
 
@@ -227,7 +222,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     <div className="w-[95%] flex flex-col justify-center items-center">
       <ToastContainer />
 
-      <Table className="w-[90%] mx-auto rounded-lg shadow-lg">
+      <Table className="w-full mx-auto rounded-lg shadow-lg">
         <TableCaption className="text-lg py-4">
           Combined Roster, Shift, and Main Data
         </TableCaption>
@@ -247,14 +242,17 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
             combinedData.map((row: any, index) => (
               <TableRow key={index}>
                 <TableCell>{row.email}</TableCell>
-                <TableCell>{row.allocation}</TableCell>
+                <TableCell>
+                  <TruncatedCell text={row.allocation} />
+                </TableCell>
+
                 {weekdays.map((day) => {
                   const [rosterValue, shiftValue] = row[day]
                     .split("/")
                     .map((v: string) => v.trim());
                   return (
                     <TableCell key={day} className="p-2">
-                      <div className="flex flex-col gap-1">
+                      <div className="flex gap-2">
                         <select
                           value={rosterValue}
                           onChange={(e) =>
@@ -287,13 +285,13 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                               e.target.value
                             )
                           }
-                          className={`w-[180px] h-[30px] rounded-lg ${getSelectStyle(
+                          className={`w-[100px] h-[30px] rounded-lg ${getSelectStyle(
                             "shift",
                             shiftValue
                           )}`}
                         >
                           <option value="N/A">N/A</option>
-                          {shiftOptions.map((option) => (
+                          {Object.values(shifts).map((option) => (
                             <option key={option} value={option}>
                               {option}
                             </option>

@@ -12,6 +12,7 @@ import { MainData } from "./interfaces/IMainData";
 import { readMainData } from "./api/MainAPI";
 import CombinedTable from "./components/CombinedTable";
 import { DatePickerWithRange } from "./components/DateRange";
+import { readLogData } from "./api/LogAPI";
 
 const App = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,6 +37,10 @@ const App = () => {
 
     readMainData().then((fetchedData) => {
       setMainData(fetchedData);
+    });
+
+    readLogData().then((fetchedData) => {
+      console.log(fetchedData);
     });
   }, []);
 
