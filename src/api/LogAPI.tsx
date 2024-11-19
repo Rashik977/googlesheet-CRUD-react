@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_LOG_API_URL;
 
-export const setLogData = async (changes: LogEntry[]) => {
+export const setLogsData = async (changes: LogEntry[]) => {
   await axios.post(API_URL, null, {
     params: {
       action: "log",

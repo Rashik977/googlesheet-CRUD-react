@@ -100,10 +100,6 @@ const App = () => {
       </Sheet>
 
       <div className="flex flex-col items-center gap-7">
-        <div className="flex gap-3">
-          <DatePickerWithRange />
-          <Button>Filter</Button>
-        </div>
         <CombinedTable
           mainData={mainData}
           rosterData={rosterData}

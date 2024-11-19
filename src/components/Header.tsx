@@ -1,3 +1,6 @@
+import { DatePickerWithRange } from "./DateRange";
+import { Button } from "./ui/button";
+
 const Header = () => {
   return (
     <header className="bg-white shadow-lg">
@@ -7,6 +10,12 @@ const Header = () => {
           <a href="/" className="text-2xl font-bold text-[#4e9045]">
             RM{" "}
           </a>
+        </div>
+        <div className="flex gap-3">
+          <DatePickerWithRange />
+          <Button className="bg-secondary text-black hover:bg-black hover:text-white transition-all">
+            Filter
+          </Button>
         </div>
       </div>
     </header>
