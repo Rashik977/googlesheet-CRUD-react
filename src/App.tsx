@@ -11,6 +11,7 @@ import { readData as readShiftData } from "./api/ShiftAPI";
 import { MainData } from "./interfaces/IMainData";
 import { readMainData } from "./api/MainAPI";
 import CombinedTable from "./components/CombinedTable";
+import { DatePickerWithRange } from "./components/DateRange";
 
 const App = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -93,11 +94,17 @@ const App = () => {
         </div>
       </Sheet>
 
-      <CombinedTable
-        mainData={mainData}
-        rosterData={rosterData}
-        shiftData={shiftData}
-      />
+      <div className="flex flex-col items-center gap-7">
+        <div className="flex gap-3">
+          <DatePickerWithRange />
+          <Button>Filter</Button>
+        </div>
+        <CombinedTable
+          mainData={mainData}
+          rosterData={rosterData}
+          shiftData={shiftData}
+        />
+      </div>
     </>
   );
 };

@@ -15,6 +15,9 @@ import { Button } from "./ui/button";
 import axios from "axios";
 import { LogEntry } from "@/interfaces/ILog";
 
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 interface CombinedTableProps {
   mainData: MainData[];
   rosterData: RowData[];
@@ -152,70 +155,78 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   };
 
   const handleLog = async () => {
-    const changes: LogEntry[] = [];
+    try {
+      toast.loading("Logging changes...");
+      const changes: LogEntry[] = [];
+      // Compare originalData with combinedData to find changes
+      combinedData.forEach((currentRow: any, index) => {
+        const originalRow = originalData[index] as any;
 
-    // Compare originalData with combinedData to find changes
-    combinedData.forEach((currentRow: any, index) => {
-      const originalRow = originalData[index] as any;
+        weekdays.forEach((day: any) => {
+          const [currentRoster, currentShift] = currentRow[day]
+            .split("/")
+            .map((v: string) => v.trim());
+          const [originalRoster, originalShift] = originalRow[day]
+            .split("/")
+            .map((v: string) => v.trim());
 
-      weekdays.forEach((day: any) => {
-        const [currentRoster, currentShift] = currentRow[day]
-          .split("/")
-          .map((v: string) => v.trim());
-        const [originalRoster, originalShift] = originalRow[day]
-          .split("/")
-          .map((v: string) => v.trim());
+          // Check for roster changes
+          if (currentRoster !== originalRoster && originalRoster !== "N/A") {
+            changes.push({
+              email: currentRow.email,
+              day,
+              field: "roster",
+              oldValue: originalRoster,
+              newValue: currentRoster,
+              changedBy: "user@example.com", // Replace with actual user email
+            });
+          }
 
-        // Check for roster changes
-        if (currentRoster !== originalRoster && originalRoster !== "N/A") {
-          changes.push({
-            email: currentRow.email,
-            day,
-            field: "roster",
-            oldValue: originalRoster,
-            newValue: currentRoster,
-            changedBy: "user@example.com", // Replace with actual user email
-          });
-        }
-
-        // Check for shift changes
-        if (currentShift !== originalShift && originalShift !== "N/A") {
-          changes.push({
-            email: currentRow.email,
-            day,
-            field: "shift",
-            oldValue: originalShift,
-            newValue: currentShift,
-            changedBy: "user@example.com", // Replace with actual user email
-          });
-        }
-      });
-    });
-
-    // Only send request if there are changes
-    if (changes.length > 0) {
-      try {
-        await axios.post(import.meta.env.VITE_LOG_API_URL, null, {
-          params: {
-            action: "log",
-            logs: JSON.stringify(changes),
-          },
+          // Check for shift changes
+          if (currentShift !== originalShift && originalShift !== "N/A") {
+            changes.push({
+              email: currentRow.email,
+              day,
+              field: "shift",
+              oldValue: originalShift,
+              newValue: currentShift,
+              changedBy: "user@example.com", // Replace with actual user email
+            });
+          }
         });
+      });
 
-        // Update originalData to reflect current state
-        setOriginalData([...combinedData]);
+      // Only send request if there are changes
+      if (changes.length > 0) {
+        try {
+          await axios.post(import.meta.env.VITE_LOG_API_URL, null, {
+            params: {
+              action: "log",
+              logs: JSON.stringify(changes),
+            },
+          });
 
-        console.log("Changes logged successfully");
-      } catch (error) {
-        console.error("Error logging changes:", error);
+          // Update originalData to reflect current state
+          setOriginalData([...combinedData]);
+
+          console.log("Changes logged successfully");
+        } catch (error) {
+          console.error("Error logging changes:", error);
+        }
+      } else {
+        console.log("No changes to log");
       }
-    } else {
-      console.log("No changes to log");
+      toast.dismiss();
+      toast.success("Changes Logged Successfully");
+    } catch (error) {
+      toast.error("Error Logging Changes");
     }
   };
 
   return (
     <div className="w-[95%] flex flex-col justify-center items-center">
+      <ToastContainer />
+
       <Table className="w-[90%] mx-auto rounded-lg shadow-lg">
         <TableCaption className="text-lg py-4">
           Combined Roster, Shift, and Main Data

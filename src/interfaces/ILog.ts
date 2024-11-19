@@ -1,5 +1,3 @@
-// src/interfaces/ILogEntry.ts
-
 export interface LogEntry {
   email: string;
   day: string;
