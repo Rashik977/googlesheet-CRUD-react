@@ -16,9 +16,9 @@ import {
 import { Button } from "../components/ui/button";
 import { FormProvider, useForm } from "react-hook-form";
 import { ShiftData } from "../interfaces/IShiftData";
-import { Loader2 } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
+
 import { LoadingCell } from "@/interfaces/ILoadingCell";
 import { shifts, weekdays } from "@/constants/constants";
 import { DatePickerWithRange } from "./DateRange";
@@ -26,6 +26,9 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { dateConverter } from "@/utils/dateConverter";
 import { addShiftData, readShiftData, updateShiftData } from "@/api/ShiftAPI";
+import { Calendar } from "./ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
 
 interface ShiftProps {
   data: ShiftData[];
@@ -155,7 +158,6 @@ const Shift: React.FC<ShiftProps> = ({
   return (
     <>
       <h1 className="text-4xl font-bold text-center py-4">Shift Management</h1>
-      <ToastContainer />
 
       <FormProvider {...useForm()}>
         <form
@@ -229,21 +231,7 @@ const Shift: React.FC<ShiftProps> = ({
                 <>
                   <TableCell>Join Date</TableCell>
                   <TableCell>End Date</TableCell>
-                </>
-              )}
 
-              {index > 0 && (
-                <>
-                  <TableCell className="px-4 py-2">
-                    {dateConverter(row.joinDate)}
-                  </TableCell>
-                  <TableCell className="px-4 py-2">
-                    {dateConverter(row.endDate)}
-                  </TableCell>
-                </>
-              )}
-              {index === 0 && (
-                <>
                   {weekdays.map((day, i) => (
                     <TableCell key={i} className="px-4 py-2">
                       {day.charAt(0).toUpperCase() + day.slice(1)}
@@ -254,11 +242,45 @@ const Shift: React.FC<ShiftProps> = ({
 
               {index > 0 && (
                 <>
+                  <TableCell className="px-4 py-2">
+                    {isLoading(index, "joinDate") ? (
+                      <div className="flex items-center justify-center w-[100px] h-[30px]">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : (
+                      <>
+                        <input
+                          className="border-[1px] border-gray-300 text-gray-600 rounded-md p-1"
+                          type="date"
+                          value={dateConverter(row.joinDate)}
+                          onChange={(e) =>
+                            handleUpdate(index, 2, e.target.value, "joinDate")
+                          }
+                        />
+                      </>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    {isLoading(index, "endDate") ? (
+                      <div className="flex items-center justify-center w-[100px] h-[30px]">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : (
+                      <input
+                        className="border-[1px] border-gray-300 text-gray-600 rounded-md p-1"
+                        type="date"
+                        value={dateConverter(row.endDate)}
+                        onChange={(e) =>
+                          handleUpdate(index, 3, e.target.value, "endDate")
+                        }
+                      />
+                    )}
+                  </TableCell>
                   {weekdays.map((day, i) => (
                     <TableCell key={i}>
                       {isLoading(index, day) ? (
                         <div className="flex items-center justify-center w-[100px] h-[30px]">
-                          <Loader2 className="h-6 animate-spin" />
+                          <Loader2 className="h-6 w-6 animate-spin" />
                         </div>
                       ) : (
                         <select

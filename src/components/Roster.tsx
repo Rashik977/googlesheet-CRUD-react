@@ -22,8 +22,7 @@ import { Button } from "../components/ui/button";
 import { FormProvider, useForm } from "react-hook-form";
 import { RowData } from "@/interfaces/IRowData";
 import { Loader2 } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import { LoadingCell } from "@/interfaces/ILoadingCell";
 import { roster, weekdays } from "@/constants/constants";
 import { DateRange } from "react-day-picker";
@@ -151,8 +150,6 @@ const Roster: React.FC<RosterProps> = ({
   return (
     <>
       <h1 className="text-4xl font-bold text-center py-4">Roster Management</h1>
-      <ToastContainer />
-
       <FormProvider {...useForm()}>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -256,10 +253,38 @@ const Roster: React.FC<RosterProps> = ({
               {index > 0 && (
                 <>
                   <TableCell className="px-4 py-2">
-                    {dateConverter(row.startDate)}
+                    {isLoading(index, "startDate") ? (
+                      <div className="flex items-center justify-center w-[100px] h-[30px]">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : (
+                      <>
+                        <input
+                          className="border-[1px] border-gray-300 text-gray-600 rounded-md p-1"
+                          type="date"
+                          value={dateConverter(row.startDate)}
+                          onChange={(e) =>
+                            handleUpdate(index, 3, e.target.value, "startDate")
+                          }
+                        />
+                      </>
+                    )}
                   </TableCell>
                   <TableCell className="px-4 py-2">
-                    {dateConverter(row.endDate)}
+                    {isLoading(index, "endDate") ? (
+                      <div className="flex items-center justify-center w-[100px] h-[30px]">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : (
+                      <input
+                        className="border-[1px] border-gray-300 text-gray-600 rounded-md p-1"
+                        type="date"
+                        value={dateConverter(row.endDate)}
+                        onChange={(e) =>
+                          handleUpdate(index, 4, e.target.value, "endDate")
+                        }
+                      />
+                    )}
                   </TableCell>
                   {weekdays.map((day, i) => (
                     <TableCell key={i}>

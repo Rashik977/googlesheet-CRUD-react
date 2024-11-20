@@ -12,6 +12,8 @@ import { MainData } from "./interfaces/IMainData";
 import { readMainData } from "./api/MainAPI";
 import CombinedTable from "./components/CombinedTable";
 import { readLogData } from "./api/LogAPI";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,10 +38,6 @@ const App = () => {
 
     readMainData().then((fetchedData) => {
       setMainData(fetchedData);
-    });
-
-    readLogData().then((fetchedData) => {
-      // console.log(fetchedData);
     });
   }, []);
 
@@ -103,6 +101,7 @@ const App = () => {
           shiftData={shiftData}
         />
       </div>
+      <ToastContainer />
     </>
   );
 };
