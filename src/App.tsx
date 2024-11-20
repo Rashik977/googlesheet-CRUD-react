@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Roster from "./components/Roster";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input"; // Add this import
 import Shift from "./components/Shift";
 import Header from "./components/Header";
 import { readRosterData } from "./api/RosterAPI";
@@ -14,17 +15,23 @@ import CombinedTable from "./components/CombinedTable";
 import { readLogData } from "./api/LogAPI";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { dateConverter } from "./utils/dateConverter";
+import { addDays } from "date-fns";
 
 const App = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [rosterData, setRosterData] = useState<RowData[]>([]);
   const [filteredRosterData, setFilteredRosterData] = useState<RowData[]>([]);
-
   const [shiftData, setShiftData] = useState<ShiftData[]>([]);
   const [filteredShiftData, setFilteredShiftData] = useState<ShiftData[]>([]);
-
   const [mainData, setMainData] = useState<MainData[]>([]);
+  const [startDate, setStartDate] = useState<string>(
+    `${dateConverter(new Date().toISOString())}`
+  );
+  const [endDate, setEndDate] = useState<string>(
+    `${dateConverter(addDays(new Date(), 7).toISOString())}`
+  );
 
   useEffect(() => {
     readRosterData().then((fetchedData) => {
@@ -35,7 +42,6 @@ const App = () => {
       setShiftData(fetchedData);
       setFilteredShiftData(fetchedData);
     });
-
     readMainData().then((fetchedData) => {
       setMainData(fetchedData);
     });
@@ -44,6 +50,27 @@ const App = () => {
   return (
     <>
       <Header />
+      <div className="flex justify-center gap-4 my-4">
+        <div className="flex items-center gap-2">
+          <label>Start Date:</label>
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-40"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label>End Date:</label>
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-40"
+          />
+        </div>
+      </div>
+
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <div className="relative">
           {/* Bookmark Button */}
@@ -99,6 +126,8 @@ const App = () => {
           mainData={mainData}
           rosterData={rosterData}
           shiftData={shiftData}
+          startDate={startDate}
+          endDate={endDate}
         />
       </div>
       <ToastContainer />

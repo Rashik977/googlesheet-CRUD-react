@@ -1,3 +1,4 @@
+// CombinedTable.tsx
 import React, { useEffect, useState } from "react";
 import {
   Table,
@@ -20,7 +21,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { History } from "lucide-react";
-
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import TruncatedCell from "./TruncatedCell";
@@ -31,16 +31,45 @@ interface CombinedTableProps {
   mainData: MainData[];
   rosterData: RowData[];
   shiftData: ShiftData[];
+  startDate: string;
+  endDate: string;
 }
 
 const CombinedTable: React.FC<CombinedTableProps> = ({
   mainData,
   rosterData,
   shiftData,
+  startDate,
+  endDate,
 }) => {
   const [combinedData, setCombinedData] = useState<CombinedData[]>([]);
   const [originalData, setOriginalData] = useState<CombinedData[]>([]);
   const [logData, setLogData] = useState<LogEntry[]>([]);
+  const [dateColumns, setDateColumns] = useState<string[]>([]);
+
+  // Helper function to get dates between range (excluding weekends)
+  const getWorkingDays = (start: string, end: string) => {
+    if (!start || !end) return [];
+    const dates: string[] = [];
+    const current = new Date(start);
+    const endDate = new Date(end);
+
+    while (current <= endDate) {
+      const day = current.getDay();
+      if (day !== 0 && day !== 6) {
+        // Skip Saturday (6) and Sunday (0)
+        dates.push(current.toISOString().split("T")[0]);
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  };
+
+  useEffect(() => {
+    if (startDate && endDate) {
+      setDateColumns(getWorkingDays(startDate, endDate));
+    }
+  }, [startDate, endDate]);
 
   useEffect(() => {
     // Fetch log data when component mounts
@@ -53,9 +82,11 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     if (
       mainData.length === 0 ||
       rosterData.length === 0 ||
-      shiftData.length === 0
+      shiftData.length === 0 ||
+      dateColumns.length === 0
     )
       return;
+
     const combinedDataMap = new Map();
     const mainDataByEmail = mainData.slice(1).reduce((acc, curr) => {
       if (!acc.has(curr.email)) {
@@ -64,55 +95,82 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
       acc.get(curr.email).push(curr);
       return acc;
     }, new Map());
+
     mainDataByEmail.forEach((personAllocations, email) => {
       const matchingShift = shiftData.find((shift) => shift.email === email);
       const allProjectRosters = personAllocations.flatMap(
         (allocation: MainData) =>
           rosterData.filter(
-            (roster) => roster.projectName === allocation.allocation
+            (roster) =>
+              roster.projectName === allocation.allocation &&
+              new Date(roster.startDate) <= new Date(endDate) &&
+              new Date(roster.endDate) >= new Date(startDate)
           )
       );
+
       const matchingPeopleRoster = rosterData.filter(
-        (roster) => roster.projectName === email
+        (roster) =>
+          roster.projectName === email &&
+          new Date(roster.startDate) <= new Date(endDate) &&
+          new Date(roster.endDate) >= new Date(startDate)
       );
+
       const allRosters = [...allProjectRosters, ...matchingPeopleRoster];
-      const weeklyRoster = {
-        monday: "N/A",
-        tuesday: "N/A",
-        wednesday: "N/A",
-        thursday: "N/A",
-        friday: "N/A",
-      };
-      (allRosters as RowData[]).forEach((roster) => {
-        (weekdays as (keyof typeof weeklyRoster)[]).forEach((day) => {
-          if (roster[day] === "WFO") {
-            weeklyRoster[day] = `WFO`;
-          } else if (roster[day] === "WFH") {
-            if (weeklyRoster[day] !== "WFO") {
-              weeklyRoster[day] = `WFH`;
+
+      const dailyData: { [key: string]: string } = {};
+      dateColumns.forEach((date) => {
+        const dayOfWeek = new Date(date).getDay();
+        const weekday = [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ][dayOfWeek].toLowerCase();
+
+        dailyData[date] = "N/A";
+
+        allRosters.forEach((roster) => {
+          if (
+            new Date(roster.startDate) <= new Date(date) &&
+            new Date(roster.endDate) >= new Date(date)
+          ) {
+            if (roster[weekday as keyof RowData] === "WFO") {
+              dailyData[date] = `WFO`;
+            } else if (
+              roster[weekday as keyof RowData] === "WFH" &&
+              dailyData[date] !== "WFO"
+            ) {
+              dailyData[date] = `WFH`;
             }
           }
         });
+
+        if (matchingShift) {
+          dailyData[date] = `${dailyData[date]}/ ${
+            matchingShift[weekday as keyof ShiftData] || ""
+          }`;
+        }
       });
-      (weekdays as (keyof typeof weeklyRoster)[]).forEach((day) => {
-        weeklyRoster[day] = `${weeklyRoster[day]}/ ${
-          matchingShift?.[day] || ""
-        }`;
-      });
+
       const baseAllocation = personAllocations[0];
       const combinedRecord = {
-        ...baseAllocation,
+        email: baseAllocation.email,
         projectName: baseAllocation.projectName || "N/A",
         allocation: personAllocations
           .map((a: MainData) => a.allocation)
           .join(", "),
-        ...weeklyRoster,
+        ...dailyData,
       };
+
       combinedDataMap.set(email, combinedRecord);
     });
+
     setCombinedData(Array.from(combinedDataMap.values()));
     setOriginalData(Array.from(combinedDataMap.values()));
-  }, [mainData, rosterData, shiftData]);
+  }, [mainData, rosterData, shiftData, dateColumns, startDate, endDate]);
 
   const getLogHistoryForCell = (email: string, day: string) => {
     return logData
@@ -230,6 +288,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
       }
       toast.dismiss();
       toast.success("Changes Logged Successfully");
+      toast.dismiss();
     } catch (error) {
       toast.error("Error Logging Changes");
     }
@@ -239,46 +298,54 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     <div className="w-[95%] flex flex-col justify-center items-center">
       <ToastContainer />
       <TooltipProvider>
-        <Table className="w-full mx-auto rounded-lg shadow-lg">
-          <TableCaption className="text-lg py-4">
-            Combined Roster, Shift, and Main Data
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableCell>Email</TableCell>
-              <TableCell>Allocation</TableCell>
-              {weekdays.map((day) => (
-                <TableCell key={day}>
-                  {day.charAt(0).toUpperCase() + day.slice(1)}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {combinedData.length > 0 ? (
-              combinedData.map((row: any, index) => (
-                <TableRow key={index}>
-                  <TableCell>{row.email}</TableCell>
-                  <TableCell>
-                    <TruncatedCell text={row.allocation} />
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[800px]">
+            <Table className="w-full mx-auto rounded-lg shadow-lg">
+              <TableCaption className="text-lg py-4">
+                Combined Roster, Shift, and Main Data
+              </TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableCell className="sticky left-0 bg-white z-10">
+                    Email
                   </TableCell>
+                  <TableCell className="sticky left-[150px] bg-white z-10">
+                    Allocation
+                  </TableCell>
+                  {dateColumns.map((date) => (
+                    <TableCell key={date}>
+                      {new Date(date).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {combinedData.map((row: any, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="sticky left-0 bg-white z-10">
+                      {row.email}
+                    </TableCell>
+                    <TableCell className="sticky left-[150px] bg-white z-10">
+                      <TruncatedCell text={row.allocation} />
+                    </TableCell>
+                    {dateColumns.map((date) => {
+                      const [rosterValue, shiftValue] = (row[date] || "N/A/ ")
+                        .split("/")
+                        .map((v: string) => v.trim());
 
-                  {weekdays.map((day) => {
-                    const [rosterValue, shiftValue] = row[day]
-                      .split("/")
-                      .map((v: string) => v.trim());
-                    const cellHistory = getLogHistoryForCell(row.email, day);
-
-                    return (
-                      <TableCell key={day} className="p-2">
-                        <div className="flex gap-3">
+                      return (
+                        <TableCell key={date} className="p-2">
                           <div className="flex gap-3">
                             <select
                               value={rosterValue}
                               onChange={(e) =>
                                 handleValueChange(
                                   index,
-                                  day,
+                                  date,
                                   "roster",
                                   e.target.value
                                 )
@@ -299,7 +366,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                               onChange={(e) =>
                                 handleValueChange(
                                   index,
-                                  day,
+                                  date,
                                   "shift",
                                   e.target.value
                                 )
@@ -316,69 +383,15 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                               ))}
                             </select>
                           </div>
-                          {cellHistory.length > 0 && (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <History className="h-4 text-gray-500" />
-                              </TooltipTrigger>
-                              <TooltipContent className="w-64 p-2">
-                                <div className="space-y-2">
-                                  <p className="font-semibold">
-                                    Change History:
-                                  </p>
-                                  {cellHistory.map((log, i) => (
-                                    <div key={i} className="text-sm">
-                                      <span className="text-gray-500">
-                                        {formatDateTime(log.timestamp)}
-                                      </span>
-                                      <br />
-                                      <span className="capitalize">
-                                        {log.field}:
-                                      </span>{" "}
-                                      <span
-                                        className={
-                                          getSelectStyle(
-                                            log.field as "roster" | "shift",
-                                            log.oldValue
-                                          ) + " p-[3px] rounded-md"
-                                        }
-                                      >
-                                        {log.oldValue}
-                                      </span>
-                                      {" → "}
-                                      <span
-                                        className={
-                                          getSelectStyle(
-                                            log.field as "roster" | "shift",
-                                            log.newValue
-                                          ) + " p-[3px] rounded-md"
-                                        }
-                                      >
-                                        {log.newValue}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow className="w-full text-center">
-                <TableCell colSpan={weekdays.length + 4} className="py-4">
-                  <div className="flex justify-center items-center">
-                    <div className="loader"></div>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </TooltipProvider>
 
       <Button className="m-4 w-16 flex-end p-5" onClick={handleLog}>
