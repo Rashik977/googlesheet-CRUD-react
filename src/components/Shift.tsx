@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { addData, readData, updateData } from "../api/ShiftAPI";
 import {
   FormControl,
   FormField,
@@ -26,6 +25,7 @@ import { DatePickerWithRange } from "./DateRange";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { dateConverter } from "@/utils/dateConverter";
+import { addShiftData, readShiftData, updateShiftData } from "@/api/ShiftAPI";
 
 interface ShiftProps {
   data: ShiftData[];
@@ -88,8 +88,8 @@ const Shift: React.FC<ShiftProps> = ({
     );
 
     try {
-      await updateData(actualRowIndex + 1, column, value);
-      const fetchedData = await readData();
+      await updateShiftData(actualRowIndex + 1, column, value);
+      const fetchedData = await readShiftData();
       setData(fetchedData);
 
       // Apply the current search filter to the updated data
@@ -119,14 +119,14 @@ const Shift: React.FC<ShiftProps> = ({
         email,
         joinDate: dateRange?.from ? format(dateRange.from, "yyyy/MM/dd") : "",
         endDate: dateRange?.to ? format(dateRange.to, "yyyy/MM/dd") : "",
-        monday: "DAY_SHIFT",
-        tuesday: "DAY_SHIFT",
-        wednesday: "DAY_SHIFT",
-        thursday: "DAY_SHIFT",
-        friday: "DAY_SHIFT",
+        monday: "DAY",
+        tuesday: "DAY",
+        wednesday: "DAY",
+        thursday: "DAY",
+        friday: "DAY",
       };
-      await addData(formData);
-      const fetchedData = await readData();
+      await addShiftData(formData);
+      const fetchedData = await readShiftData();
       setData(fetchedData);
       // Update filtered data while maintaining any existing search filter
       const headerRow = fetchedData[0];
@@ -257,8 +257,8 @@ const Shift: React.FC<ShiftProps> = ({
                   {weekdays.map((day, i) => (
                     <TableCell key={i}>
                       {isLoading(index, day) ? (
-                        <div className="flex items-center justify-center w-[180px] h-[30px]">
-                          <Loader2 className="h-6 w-6 animate-spin" />
+                        <div className="flex items-center justify-center w-[100px] h-[30px]">
+                          <Loader2 className="h-6 animate-spin" />
                         </div>
                       ) : (
                         <select

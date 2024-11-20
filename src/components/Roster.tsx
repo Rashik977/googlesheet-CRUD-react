@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { addData, readData, updateData } from "../api/RosterAPI";
+import {
+  addRosterData,
+  readRosterData,
+  updateRosterData,
+} from "../api/RosterAPI";
 import {
   FormControl,
   FormField,
@@ -80,8 +84,8 @@ const Roster: React.FC<RosterProps> = ({
     );
 
     try {
-      await updateData(actualRowIndex + 1, column, value);
-      const fetchedData = await readData();
+      await updateRosterData(actualRowIndex + 1, column, value);
+      const fetchedData = await readRosterData();
       setData(fetchedData);
 
       const headerRow = fetchedData[0];
@@ -117,9 +121,9 @@ const Roster: React.FC<RosterProps> = ({
         startDate: dateRange?.from ? format(dateRange.from, "yyyy/MM/dd") : "",
         endDate: dateRange?.to ? format(dateRange.to, "yyyy/MM/dd") : "",
       };
-      await addData(formData);
+      await addRosterData(formData);
 
-      const fetchedData = await readData();
+      const fetchedData = await readRosterData();
       setData(fetchedData);
 
       // Update filtered data while maintaining any existing search filter
@@ -237,19 +241,10 @@ const Roster: React.FC<RosterProps> = ({
               <TableCell>{row.projectName}</TableCell>
               <TableCell>{row.projectLeader}</TableCell>
 
-              {index > 0 && (
-                <>
-                  <TableCell className="px-4 py-2">
-                    {dateConverter(row.startDate)}
-                  </TableCell>
-                  <TableCell className="px-4 py-2">
-                    {dateConverter(row.endDate)}
-                  </TableCell>
-                </>
-              )}
-
               {index === 0 && (
                 <>
+                  <TableCell className="px-4 py-2">Start Date</TableCell>
+                  <TableCell className="px-4 py-2">End Date</TableCell>
                   {weekdays.map((day, i) => (
                     <TableCell key={i} className="px-4 py-2">
                       {day.charAt(0).toUpperCase() + day.slice(1)}
@@ -260,6 +255,12 @@ const Roster: React.FC<RosterProps> = ({
 
               {index > 0 && (
                 <>
+                  <TableCell className="px-4 py-2">
+                    {dateConverter(row.startDate)}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    {dateConverter(row.endDate)}
+                  </TableCell>
                   {weekdays.map((day, i) => (
                     <TableCell key={i}>
                       {isLoading(index, day) ? (
