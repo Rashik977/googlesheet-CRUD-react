@@ -1,11 +1,13 @@
+import { API_URL } from "@/config";
 import { LogEntry } from "@/interfaces/ILog";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_LOG_API_URL;
+const module = "log";
 
 export const setLogsData = async (changes: LogEntry[]) => {
-  await axios.post(API_URL, null, {
+  await axios.get(API_URL, {
     params: {
+      module: module,
       action: "log",
       logs: JSON.stringify(changes),
     },
@@ -14,8 +16,9 @@ export const setLogsData = async (changes: LogEntry[]) => {
 
 export const readLogData = async () => {
   try {
-    const response = await axios.get(API_URL, { params: { action: "read" } });
-    console.log(response);
+    const response = await axios.get(API_URL, {
+      params: { module: module, action: "read" },
+    });
     const fetchedData = response.data.map((row: string[]) => ({
       timestamp: row[0],
       email: row[1],

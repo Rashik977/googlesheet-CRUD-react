@@ -1,12 +1,16 @@
+import { API_URL } from "@/config";
 import axios from "axios";
 
-const MAIN_API_URL = import.meta.env.VITE_MAIN_API_URL;
+const module = "main";
 
 // Fetch data from Google Sheets
 export const readMainData = async () => {
   try {
-    const response = await axios.get(MAIN_API_URL, {
-      params: { action: "read" },
+    const response = await axios.get(API_URL, {
+      params: {
+        module: module,
+        action: "read",
+      },
     });
     const fetchedData = response.data.map((row: string[]) => ({
       email: row[0],
@@ -28,8 +32,9 @@ export const addMainData = async (
   endDate: string
 ) => {
   try {
-    await axios.post(MAIN_API_URL, null, {
+    await axios.get(API_URL, {
       params: {
+        module: module,
         action: "create",
         email: email,
         allocation: allocation,
@@ -50,8 +55,9 @@ export const updateMainData = async (
   value: string
 ) => {
   try {
-    await axios.post(MAIN_API_URL, null, {
+    await axios.get(API_URL, {
       params: {
+        module: module,
         action: "update",
         row: row,
         column: column,
@@ -67,8 +73,9 @@ export const updateMainData = async (
 // Delete data from Google Sheets
 export const deleteMainData = async (row: number) => {
   try {
-    await axios.post(MAIN_API_URL, null, {
+    await axios.get(API_URL, {
       params: {
+        module: module,
         action: "delete",
         row: row,
       },
@@ -82,8 +89,8 @@ export const deleteMainData = async (row: number) => {
 // Search data in Google Sheets by email
 export const searchMainDataByEmail = async (email: string) => {
   try {
-    const response = await axios.get(MAIN_API_URL, {
-      params: { action: "search", email: email },
+    const response = await axios.get(API_URL, {
+      params: { module: module, action: "search", email: email },
     });
     return response.data;
   } catch (error) {
@@ -94,8 +101,8 @@ export const searchMainDataByEmail = async (email: string) => {
 // Fetch unique allocations from Google Sheets
 export const getUniqueAllocations = async () => {
   try {
-    const response = await axios.get(MAIN_API_URL, {
-      params: { action: "getAllocations" },
+    const response = await axios.get(API_URL, {
+      params: { module: module, action: "getAllocations" },
     });
     return response.data;
   } catch (error) {

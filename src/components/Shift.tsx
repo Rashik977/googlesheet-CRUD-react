@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { addData, readData, updateData } from "../api/ShiftAPI";
 import {
   FormControl,
   FormField,
@@ -22,6 +21,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LoadingCell } from "@/interfaces/ILoadingCell";
 import { shifts, weekdays } from "@/constants/constants";
+import { addShiftData, readShiftData, updateShiftData } from "@/api/ShiftAPI";
 
 interface ShiftProps {
   data: ShiftData[];
@@ -43,13 +43,6 @@ const Shift: React.FC<ShiftProps> = ({
   const [loadingCells, setLoadingCells] = useState<LoadingCell[]>([]);
 
   const { handleSubmit } = useForm();
-
-  // const shiftOptions = [
-  //   "DAY_SHIFT",
-  //   "MORNING_SHIFT",
-  //   "EVENING_SHIFT",
-  //   "LATE_EVENING_SHIFT",
-  // ];
 
   const isLoading = (row: number, day: string) => {
     return loadingCells.some((cell) => cell.row === row && cell.day === day);
@@ -81,8 +74,8 @@ const Shift: React.FC<ShiftProps> = ({
     );
 
     try {
-      await updateData(actualRowIndex + 1, column, value);
-      const fetchedData = await readData();
+      await updateShiftData(actualRowIndex + 1, column, value);
+      const fetchedData = await readShiftData();
       setData(fetchedData);
 
       // Apply the current search filter to the updated data
@@ -113,17 +106,17 @@ const Shift: React.FC<ShiftProps> = ({
   const onSubmit = async () => {
     try {
       toast.loading("Adding shift...");
-      await addData({
+      await addShiftData({
         email,
         joinDate,
         endDate,
-        monday: "DAY_SHIFT",
-        tuesday: "DAY_SHIFT",
-        wednesday: "DAY_SHIFT",
-        thursday: "DAY_SHIFT",
-        friday: "DAY_SHIFT",
+        monday: "DAY",
+        tuesday: "DAY",
+        wednesday: "DAY",
+        thursday: "DAY",
+        friday: "DAY",
       });
-      const fetchedData = await readData();
+      const fetchedData = await readShiftData();
       setData(fetchedData);
       // Update filtered data while maintaining any existing search filter
       const headerRow = fetchedData[0];
@@ -279,8 +272,8 @@ const Shift: React.FC<ShiftProps> = ({
                   {weekdays.map((day, i) => (
                     <TableCell key={i}>
                       {isLoading(index, day) ? (
-                        <div className="flex items-center justify-center w-[180px] h-[30px]">
-                          <Loader2 className="h-6 w-6 animate-spin" />
+                        <div className="flex items-center justify-center w-[100px] h-[30px]">
+                          <Loader2 className="h-6 animate-spin" />
                         </div>
                       ) : (
                         <select

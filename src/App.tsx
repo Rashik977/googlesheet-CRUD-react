@@ -4,14 +4,13 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "./components/ui/button";
 import Shift from "./components/Shift";
 import Header from "./components/Header";
-import { readData as readRosterData } from "./api/RosterAPI";
+import { readRosterData } from "./api/RosterAPI";
 import { RowData } from "./interfaces/IRowData";
 import { ShiftData } from "./interfaces/IShiftData";
-import { readData as readShiftData } from "./api/ShiftAPI";
+import { readShiftData } from "./api/ShiftAPI";
 import { MainData } from "./interfaces/IMainData";
 import { readMainData } from "./api/MainAPI";
 import CombinedTable from "./components/CombinedTable";
-import { DatePickerWithRange } from "./components/DateRange";
 import { readLogData } from "./api/LogAPI";
 
 const App = () => {
@@ -75,7 +74,6 @@ const App = () => {
 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <div className="relative">
-          {/* Bookmark Button */}
           <SheetTrigger className="w-full flex justify-end">
             <Button
               variant="outline"
@@ -87,7 +85,6 @@ const App = () => {
             </Button>
           </SheetTrigger>
 
-          {/* Slide-in Sheet Content */}
           <SheetContent className="w-[60%] h-full overflow-auto">
             <Shift
               data={shiftData}

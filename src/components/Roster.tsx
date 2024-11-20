@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { addData, readData, updateData } from "../api/RosterAPI";
+import {
+  addRosterData,
+  readRosterData,
+  updateRosterData,
+} from "../api/RosterAPI";
 import {
   FormControl,
   FormField,
@@ -73,8 +77,8 @@ const Roster: React.FC<RosterProps> = ({
     );
 
     try {
-      await updateData(actualRowIndex + 1, column, value);
-      const fetchedData = await readData();
+      await updateRosterData(actualRowIndex + 1, column, value);
+      const fetchedData = await readRosterData();
       setData(fetchedData);
 
       const headerRow = fetchedData[0];
@@ -99,7 +103,7 @@ const Roster: React.FC<RosterProps> = ({
   const onSubmit = async () => {
     try {
       toast.loading("Adding roster...");
-      await addData({
+      await addRosterData({
         projectName: name,
         projectLeader: email,
         monday: "WFH",
@@ -108,7 +112,7 @@ const Roster: React.FC<RosterProps> = ({
         thursday: "WFH",
         friday: "WFH",
       });
-      const fetchedData = await readData();
+      const fetchedData = await readRosterData();
       setData(fetchedData);
 
       // Update filtered data while maintaining any existing search filter

@@ -1,11 +1,18 @@
+import { API_URL } from "@/config";
 import { RowData } from "@/interfaces/IRowData";
 import axios from "axios";
-const API_URL = import.meta.env.VITE_ROSTER_API_URL;
+
+const module = "roster";
 
 // Fetch data from Google Sheets
-export const readData = async () => {
+export const readRosterData = async () => {
   try {
-    const response = await axios.get(API_URL, { params: { action: "read" } });
+    const response = await axios.get(API_URL, {
+      params: {
+        module: module,
+        action: "read",
+      },
+    });
     const fetchedData = response.data.map((row: string[]) => ({
       projectName: row[0],
       projectLeader: row[1],
@@ -22,10 +29,11 @@ export const readData = async () => {
 };
 
 // Function to add data to Google Sheets
-export const addData = async (rowData: RowData) => {
+export const addRosterData = async (rowData: RowData) => {
   try {
-    await axios.post(API_URL, null, {
+    await axios.get(API_URL, {
       params: {
+        module: module,
         action: "create",
         projectName: rowData.projectName,
         projectLeader: rowData.projectLeader,
@@ -43,14 +51,15 @@ export const addData = async (rowData: RowData) => {
 };
 
 // Function to update a specific cell in Google Sheets
-export const updateData = async (
+export const updateRosterData = async (
   row: number,
   column: number,
   value: string
 ) => {
   try {
-    await axios.post(API_URL, null, {
+    await axios.get(API_URL, {
       params: {
+        module: module,
         action: "update",
         row: row,
         column: column,
@@ -64,10 +73,11 @@ export const updateData = async (
 };
 
 // Function to delete data from Google Sheets
-export const deleteData = async (id: number) => {
+export const deleteRosterData = async (id: number) => {
   try {
-    await axios.post(API_URL, null, {
+    await axios.get(API_URL, {
       params: {
+        module: module,
         action: "delete",
         id: id,
       },
