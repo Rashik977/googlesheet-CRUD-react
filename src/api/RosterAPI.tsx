@@ -9,11 +9,13 @@ export const readData = async () => {
     const fetchedData = response.data.map((row: string[]) => ({
       projectName: row[0],
       projectLeader: row[1],
-      monday: row[2],
-      tuesday: row[3],
-      wednesday: row[4],
-      thursday: row[5],
-      friday: row[6],
+      startDate: row[2],
+      endDate: row[3],
+      monday: row[4],
+      tuesday: row[5],
+      wednesday: row[6],
+      thursday: row[7],
+      friday: row[8],
     }));
     return fetchedData;
   } catch (error) {
@@ -29,6 +31,8 @@ export const addData = async (rowData: RowData) => {
         action: "create",
         projectName: rowData.projectName,
         projectLeader: rowData.projectLeader,
+        startDate: rowData.startDate,
+        endDate: rowData.endDate,
         monday: rowData.monday,
         tuesday: rowData.tuesday,
         wednesday: rowData.wednesday,

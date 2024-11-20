@@ -22,6 +22,10 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LoadingCell } from "@/interfaces/ILoadingCell";
 import { shifts, weekdays } from "@/constants/constants";
+import { DatePickerWithRange } from "./DateRange";
+import { DateRange } from "react-day-picker";
+import { format } from "date-fns";
+import { dateConverter } from "@/utils/dateConverter";
 
 interface ShiftProps {
   data: ShiftData[];
@@ -41,7 +45,10 @@ const Shift: React.FC<ShiftProps> = ({
   const [joinDate, setJoinDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loadingCells, setLoadingCells] = useState<LoadingCell[]>([]);
-
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  });
   const { handleSubmit } = useForm();
 
   // const shiftOptions = [
@@ -105,24 +112,20 @@ const Shift: React.FC<ShiftProps> = ({
     }
   };
 
-  const dateConverter = (date: string) => {
-    const [year, month, day] = date.split("T")[0].split("-");
-    return `${year}/${month}/${day}`;
-  };
-
   const onSubmit = async () => {
     try {
       toast.loading("Adding shift...");
-      await addData({
+      const formData = {
         email,
-        joinDate,
-        endDate,
+        joinDate: dateRange?.from ? format(dateRange.from, "yyyy/MM/dd") : "",
+        endDate: dateRange?.to ? format(dateRange.to, "yyyy/MM/dd") : "",
         monday: "DAY_SHIFT",
         tuesday: "DAY_SHIFT",
         wednesday: "DAY_SHIFT",
         thursday: "DAY_SHIFT",
         friday: "DAY_SHIFT",
-      });
+      };
+      await addData(formData);
       const fetchedData = await readData();
       setData(fetchedData);
       // Update filtered data while maintaining any existing search filter
@@ -159,7 +162,7 @@ const Shift: React.FC<ShiftProps> = ({
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-wrap gap-5 items-center p-8 rounded-lg shadow-md"
         >
-          <div className="flex gap-5">
+          <div className="flex flex-col lg:flex-row gap-5">
             <FormField
               name="email"
               render={({ field }) => (
@@ -179,42 +182,19 @@ const Shift: React.FC<ShiftProps> = ({
                 </FormItem>
               )}
             />
+
             <FormField
-              name="joinDate"
+              name="dateRange"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
                   <FormLabel className="font-semibold text-lg">
-                    Join Date
+                    Start Date - End Date
                   </FormLabel>
                   <FormControl>
-                    <input
-                      placeholder="YYYY/MM/DD"
-                      {...field}
-                      onChange={(e) => setJoinDate(e.target.value)}
-                      type="text"
-                      value={joinDate}
-                      className="w-60 p-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="endDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
-                  <FormLabel className="font-semibold text-lg">
-                    End Date
-                  </FormLabel>
-                  <FormControl>
-                    <input
-                      placeholder="YYYY/MM/DD"
-                      {...field}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      type="text"
-                      value={endDate}
-                      className="w-60 p-2 rounded-md focus:outline-none focus:ring focus:ring-indigo-300 border-black border-2"
+                    <DatePickerWithRange
+                      className="w-[300px]"
+                      date={dateRange}
+                      setDate={setDateRange}
                     />
                   </FormControl>
                   <FormMessage />
@@ -223,9 +203,7 @@ const Shift: React.FC<ShiftProps> = ({
             />
           </div>
 
-          <div className="flex justify-center items-center w-full">
-            <Button className="px-10 py-5">Add Shift</Button>
-          </div>
+          <Button className="px-10 py-5">Add Shift</Button>
         </form>
       </FormProvider>
 

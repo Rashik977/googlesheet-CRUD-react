@@ -40,7 +40,7 @@ const App = () => {
     });
 
     readLogData().then((fetchedData) => {
-      console.log(fetchedData);
+      // console.log(fetchedData);
     });
   }, []);
 

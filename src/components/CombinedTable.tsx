@@ -271,7 +271,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
                     return (
                       <TableCell key={day} className="p-2">
-                        <div className="flex gap-3 ">
+                        <div className="flex gap-3">
                           <div className="flex gap-3">
                             <select
                               value={rosterValue}
@@ -288,7 +288,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                                 rosterValue
                               )}`}
                             >
-                              <option value="N/A">N/A</option>
                               {Object.values(roster).map((option) => (
                                 <option key={option} value={option}>
                                   {option}
@@ -310,7 +309,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                                 shiftValue
                               )}`}
                             >
-                              <option value="N/A">N/A</option>
                               {Object.values(shifts).map((option) => (
                                 <option key={option} value={option}>
                                   {option}

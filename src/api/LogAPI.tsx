@@ -15,7 +15,6 @@ export const setLogsData = async (changes: LogEntry[]) => {
 export const readLogData = async () => {
   try {
     const response = await axios.get(API_URL, { params: { action: "read" } });
-    console.log(response);
     const fetchedData = response.data.map((row: string[]) => ({
       timestamp: row[0],
       email: row[1],

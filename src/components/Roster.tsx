@@ -22,6 +22,10 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { LoadingCell } from "@/interfaces/ILoadingCell";
 import { roster, weekdays } from "@/constants/constants";
+import { DateRange } from "react-day-picker";
+import { format } from "date-fns";
+import { DatePickerWithRange } from "./DateRange";
+import { dateConverter } from "@/utils/dateConverter";
 
 interface RosterProps {
   data: RowData[];
@@ -40,7 +44,10 @@ const Roster: React.FC<RosterProps> = ({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [loadingCells, setLoadingCells] = useState<LoadingCell[]>([]);
-
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  });
   const { handleSubmit } = useForm();
 
   const isLoading = (row: number, day: string) => {
@@ -99,7 +106,7 @@ const Roster: React.FC<RosterProps> = ({
   const onSubmit = async () => {
     try {
       toast.loading("Adding roster...");
-      await addData({
+      const formData = {
         projectName: name,
         projectLeader: email,
         monday: "WFH",
@@ -107,7 +114,11 @@ const Roster: React.FC<RosterProps> = ({
         wednesday: "WFH",
         thursday: "WFH",
         friday: "WFH",
-      });
+        startDate: dateRange?.from ? format(dateRange.from, "yyyy/MM/dd") : "",
+        endDate: dateRange?.to ? format(dateRange.to, "yyyy/MM/dd") : "",
+      };
+      await addData(formData);
+
       const fetchedData = await readData();
       setData(fetchedData);
 
@@ -185,6 +196,24 @@ const Roster: React.FC<RosterProps> = ({
               </FormItem>
             )}
           />
+          <FormField
+            name="dateRange"
+            render={({ field }) => (
+              <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
+                <FormLabel className="font-semibold text-lg">
+                  Date Range
+                </FormLabel>
+                <FormControl>
+                  <DatePickerWithRange
+                    className="w-[300px]"
+                    date={dateRange}
+                    setDate={setDateRange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <Button className="px-10 py-5">Add Roster</Button>
         </form>
       </FormProvider>
@@ -208,6 +237,17 @@ const Roster: React.FC<RosterProps> = ({
               <TableCell>{row.projectName}</TableCell>
               <TableCell>{row.projectLeader}</TableCell>
 
+              {index > 0 && (
+                <>
+                  <TableCell className="px-4 py-2">
+                    {dateConverter(row.startDate)}
+                  </TableCell>
+                  <TableCell className="px-4 py-2">
+                    {dateConverter(row.endDate)}
+                  </TableCell>
+                </>
+              )}
+
               {index === 0 && (
                 <>
                   {weekdays.map((day, i) => (
@@ -230,7 +270,7 @@ const Roster: React.FC<RosterProps> = ({
                         <select
                           value={row[day as keyof RowData]}
                           onChange={(e) =>
-                            handleUpdate(index, 3 + i, e.target.value, day)
+                            handleUpdate(index, 5 + i, e.target.value, day)
                           }
                           className={`w-[80px] h-[30px] rounded-l ${
                             row[day as keyof RowData] === "WFH"
