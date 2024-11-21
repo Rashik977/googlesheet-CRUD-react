@@ -29,10 +29,12 @@ const App = () => {
   const [filteredShiftData, setFilteredShiftData] = useState<ShiftData[]>([]);
   const [mainData, setMainData] = useState<MainData[]>([]);
   const [startDate, setStartDate] = useState<string>(
-    `${dateConverter(new Date().toISOString())}`
+    // `${dateConverter(new Date().toISOString())}`
+    "2024-11-10"
   );
   const [endDate, setEndDate] = useState<string>(
-    `${dateConverter(addDays(new Date(), 7).toISOString())}`
+    "2024-11-30"
+    // `${dateConverter(addDays(new Date(), 7).toISOString())}`
   );
 
   useEffect(() => {
@@ -47,35 +49,16 @@ const App = () => {
     readMainData().then((fetchedData) => {
       setMainData(fetchedData);
     });
-
-    readLogData().then((fetchedData) => {
-      console.log(fetchedData);
-    });
   }, []);
 
   return (
     <>
-      <Header />
-      <div className="flex justify-center gap-4 my-4">
-        <div className="flex items-center gap-2">
-          <label>Start Date:</label>
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-40"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <label>End Date:</label>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-40"
-          />
-        </div>
-      </div>
+      <Header
+        startDate={startDate}
+        setStartDate={setStartDate}
+        endDate={endDate}
+        setEndDate={setEndDate}
+      />
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <div className="relative">

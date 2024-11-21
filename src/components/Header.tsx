@@ -3,13 +3,21 @@ import { DateRange } from "react-day-picker";
 import { DatePickerWithRange } from "./DateRange";
 import { Button } from "./ui/button";
 import { addDays } from "date-fns";
+import { Input } from "./ui/input";
 
-const Header = () => {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -15),
-    to: addDays(new Date(), 15),
-  });
+type HeaderProps = {
+  startDate: string;
+  setStartDate: React.Dispatch<React.SetStateAction<string>>;
+  endDate: string;
+  setEndDate: React.Dispatch<React.SetStateAction<string>>;
+};
 
+const Header = ({
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+}: HeaderProps) => {
   return (
     <header className="bg-white shadow-lg">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -19,11 +27,25 @@ const Header = () => {
             RM{" "}
           </a>
         </div>
-        <div className="flex gap-3">
-          <DatePickerWithRange setDate={setDateRange} date={dateRange} />
-          <Button className="bg-secondary text-black hover:bg-black hover:text-white transition-all">
-            Filter
-          </Button>
+        <div className="flex justify-center gap-4 my-4">
+          <div className="flex items-center gap-2">
+            <label>Start Date:</label>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-40"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label>End Date:</label>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-40"
+            />
+          </div>
         </div>
       </div>
     </header>

@@ -133,30 +133,52 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
           "saturday",
         ][dayOfWeek].toLowerCase();
 
+        // Initialize dailyData to N/A
         dailyData[date] = "N/A";
 
-        // Determine roster status
+        // Check if the current date is within the shift's date range
+        const currentDate = new Date(date);
+        const isWithinShiftDateRange =
+          personShifts &&
+          currentDate >= new Date(personShifts.joinDate) &&
+          currentDate <= new Date(personShifts.endDate);
+
+        // Handle roster first
         allRosters.forEach((roster) => {
           if (
-            new Date(roster.startDate) <= new Date(date) &&
-            new Date(roster.endDate) >= new Date(date)
+            new Date(roster.startDate) <= currentDate &&
+            new Date(roster.endDate) >= currentDate
           ) {
             if (roster[weekday as keyof RowData] === "WFO") {
-              dailyData[date] = `WFO`;
+              dailyData[date] = `WFO/ N/A`;
             } else if (
               roster[weekday as keyof RowData] === "WFH" &&
-              dailyData[date] !== "WFO"
+              dailyData[date].split("/")[0] !== "WFO"
             ) {
-              dailyData[date] = `WFH`;
+              dailyData[date] = `WFH/ N/A`;
             }
           }
         });
 
-        // Add shift data
-        if (personShifts) {
-          const shiftValue = personShifts[weekday as keyof ShiftData] || "N/A";
-          dailyData[date] = `${dailyData[date]}/ ${shiftValue}`;
+        // Handle shifts
+        if (isWithinShiftDateRange) {
+          const shiftValue = personShifts[weekday as keyof ShiftData];
+
+          if (shiftValue && shiftValue !== "N/A") {
+            // If roster is N/A, set shift with N/A roster
+            if (dailyData[date].split("/")[0].trim() === "N/A") {
+              dailyData[date] = `N/A/ ${shiftValue}`;
+            } else {
+              // Replace shift part while keeping roster
+              const [rosterPart] = dailyData[date].split("/");
+              dailyData[date] = `${rosterPart}/ ${shiftValue}`;
+            }
+          }
         }
+
+        // if (email === "apple4@yopmail.com") {
+        //   console.log(dailyData);
+        // }
 
         // INDEPENDENT log tracking for roster and shift
         const rosterLogs = logData
