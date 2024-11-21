@@ -6,6 +6,7 @@ export interface LogEntry {
   newValue: string;
   changedBy: string;
   timestamp?: string; // Optional as it's added server-side
+  date?: string;
 }
 
 // If you need to type the response from the server

@@ -27,9 +27,11 @@ export const readLogData = async () => {
       oldValue: row[4],
       newValue: row[5],
       changedBy: row[6],
+      date: row[7] || "", // Add date column
     }));
     return fetchedData;
   } catch (error) {
     console.error("Error fetching data:", error);
+    return [];
   }
 };

@@ -20,12 +20,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { History } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import TruncatedCell from "./TruncatedCell";
 import { roster, shifts, weekdays } from "@/constants/constants";
 import { readLogData, setLogsData } from "@/api/LogAPI";
+import { ClockIcon } from "lucide-react";
+import { getSelectStyle } from "@/utils/getSelectStyle";
+import { formatDateTime } from "@/utils/formatDateTime";
 
 interface CombinedTableProps {
   mainData: MainData[];
@@ -82,8 +83,8 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     if (
       mainData.length === 0 ||
       rosterData.length === 0 ||
-      shiftData.length === 0 ||
-      dateColumns.length === 0
+      dateColumns.length === 0 ||
+      logData.length === 0
     )
       return;
 
@@ -97,7 +98,9 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     }, new Map());
 
     mainDataByEmail.forEach((personAllocations, email) => {
-      const matchingShift = shiftData.find((shift) => shift.email === email);
+      // Find shifts specific to this email
+      const personShifts = shiftData.find((shift) => shift.email === email);
+
       const allProjectRosters = personAllocations.flatMap(
         (allocation: MainData) =>
           rosterData.filter(
@@ -132,6 +135,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
         dailyData[date] = "N/A";
 
+        // Determine roster status
         allRosters.forEach((roster) => {
           if (
             new Date(roster.startDate) <= new Date(date) &&
@@ -148,10 +152,55 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
           }
         });
 
-        if (matchingShift) {
-          dailyData[date] = `${dailyData[date]}/ ${
-            matchingShift[weekday as keyof ShiftData] || ""
-          }`;
+        // Add shift data
+        if (personShifts) {
+          const shiftValue = personShifts[weekday as keyof ShiftData] || "N/A";
+          dailyData[date] = `${dailyData[date]}/ ${shiftValue}`;
+        }
+
+        // INDEPENDENT log tracking for roster and shift
+        const rosterLogs = logData
+          .filter(
+            (log) =>
+              log.email === email &&
+              log.field === "roster" &&
+              new Date(log.date || "").toISOString().split("T")[0] ===
+                new Date(date).toISOString().split("T")[0]
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.timestamp || "").getTime() -
+              new Date(a.timestamp || "").getTime()
+          );
+
+        const shiftLogs = logData
+          .filter(
+            (log) =>
+              log.email === email &&
+              log.field === "shift" &&
+              new Date(log.date || "").toISOString().split("T")[0] ===
+                new Date(date).toISOString().split("T")[0]
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.timestamp || "").getTime() -
+              new Date(a.timestamp || "").getTime()
+          );
+
+        // Override roster if log exists
+        if (rosterLogs.length > 0) {
+          const [existingShift] = dailyData[date]
+            .split("/")
+            .map((v) => v.trim());
+          dailyData[date] = `${rosterLogs[0].newValue}/ ${existingShift}`;
+        }
+
+        // Override shift if log exists
+        if (shiftLogs.length > 0) {
+          const [existingRoster] = dailyData[date]
+            .split("/")
+            .map((v) => v.trim());
+          dailyData[date] = `${existingRoster}/ ${shiftLogs[0].newValue}`;
         }
       });
 
@@ -170,27 +219,29 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
     setCombinedData(Array.from(combinedDataMap.values()));
     setOriginalData(Array.from(combinedDataMap.values()));
-  }, [mainData, rosterData, shiftData, dateColumns, startDate, endDate]);
+  }, [
+    mainData,
+    rosterData,
+    shiftData,
+    dateColumns,
+    startDate,
+    endDate,
+    logData,
+  ]);
 
-  const getLogHistoryForCell = (email: string, day: string) => {
+  const getLogHistoryForCell = (email: string, date: string) => {
     return logData
-      .filter((log) => log.email === email && log.day.toLowerCase() === day)
+      .filter(
+        (log) =>
+          log.email === email &&
+          new Date(log.date || "").toISOString().split("T")[0] === date
+      )
       .sort(
         (a, b) =>
           new Date(b.timestamp || "").getTime() -
           new Date(a.timestamp || "").getTime()
       )
       .slice(0, 3);
-  };
-
-  const formatDateTime = (timestamp?: string) => {
-    if (!timestamp) return "";
-    return new Date(timestamp).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   const handleValueChange = (
@@ -218,40 +269,25 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     });
   };
 
-  const getSelectStyle = (type: "roster" | "shift", value: string) => {
-    if (type === "roster") {
-      return value === "WFH"
-        ? "bg-[#69c17c] text-white"
-        : value === "WFO"
-        ? "bg-[#4a805b] text-white"
-        : "bg-white text-black";
-    } else {
-      return value === "MORNING"
-        ? "bg-[#fee5a0] text-black"
-        : value === "DAY"
-        ? "bg-[#E8EAED] text-black"
-        : value === "EVENING"
-        ? "bg-[#F6C7A9] text-black"
-        : value === "LATE"
-        ? "bg-[#3D3D3D] text-white"
-        : "bg-white";
-    }
-  };
-
   const handleLog = async () => {
     try {
       toast.loading("Logging changes...");
       const changes: LogEntry[] = [];
+
       combinedData.forEach((currentRow: any, index) => {
         const originalRow = originalData[index] as any;
 
-        weekdays.forEach((day: any) => {
-          const [currentRoster, currentShift] = currentRow[day]
+        dateColumns.forEach((date) => {
+          const [currentRoster, currentShift] = currentRow[date]
             .split("/")
             .map((v: string) => v.trim());
-          const [originalRoster, originalShift] = originalRow[day]
+          const [originalRoster, originalShift] = originalRow[date]
             .split("/")
             .map((v: string) => v.trim());
+
+          const day = new Date(date)
+            .toLocaleDateString("en-US", { weekday: "long" })
+            .toLowerCase();
 
           if (currentRoster !== originalRoster && originalRoster !== "N/A") {
             changes.push({
@@ -260,8 +296,9 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               field: "roster",
               oldValue: originalRoster,
               newValue: currentRoster,
-              changedBy: "user@example.com",
+              changedBy: "user@example.com", // Replace with actual user
               timestamp: new Date().toISOString(),
+              date: date,
             });
           }
 
@@ -272,8 +309,9 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               field: "shift",
               oldValue: originalShift,
               newValue: currentShift,
-              changedBy: "user@example.com",
+              changedBy: "user@example.com", // Replace with actual user
               timestamp: new Date().toISOString(),
+              date: date,
             });
           }
         });
@@ -284,19 +322,57 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
         setOriginalData([...combinedData]);
         // Update log data with new changes
         setLogData((prevLogs) => [...changes, ...prevLogs]);
-        console.log("Changes logged successfully");
+        toast.dismiss();
+        toast.success("Changes Logged Successfully");
+      } else {
+        toast.info("No changes to log");
       }
-      toast.dismiss();
-      toast.success("Changes Logged Successfully");
-      toast.dismiss();
     } catch (error) {
       toast.error("Error Logging Changes");
+      console.error(error);
     }
+  };
+
+  const LogHistoryTooltip = ({
+    email,
+    date,
+  }: {
+    email: string;
+    date: string;
+  }) => {
+    const logHistory = getLogHistoryForCell(email, date);
+
+    if (logHistory.length === 0) return null;
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-pointer">
+            <ClockIcon
+              size={16}
+              className="text-gray-500 hover:text-gray-700"
+            />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-[300px]">
+          <div className="text-xs">
+            {logHistory.map((log, idx) => (
+              <div key={idx} className="mb-1">
+                <span className="font-bold">{log.field}</span>:{log.oldValue} →{" "}
+                {log.newValue}
+                <span className="ml-2 text-gray-400">
+                  {formatDateTime(log.timestamp)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    );
   };
 
   return (
     <div className="w-[95%] flex flex-col justify-center items-center">
-      <ToastContainer />
       <TooltipProvider>
         <div className="w-full overflow-x-auto">
           <div className="min-w-[800px]">
@@ -324,70 +400,86 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {combinedData.map((row: any, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="sticky left-0 bg-white z-10">
-                      {row.email}
-                    </TableCell>
-                    <TableCell className="sticky left-[150px] bg-white z-10">
-                      <TruncatedCell text={row.allocation} />
-                    </TableCell>
-                    {dateColumns.map((date) => {
-                      const [rosterValue, shiftValue] = (row[date] || "N/A/ ")
-                        .split("/")
-                        .map((v: string) => v.trim());
+                {combinedData.length > 0 ? (
+                  combinedData.map((row: any, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="sticky left-0 bg-white z-10">
+                        {row.email}
+                      </TableCell>
+                      <TableCell className="sticky left-[150px] bg-white z-10">
+                        <TruncatedCell text={row.allocation} />
+                      </TableCell>
+                      {dateColumns.map((date) => {
+                        const [rosterValue, shiftValue] = (row[date] || "N/A/ ")
+                          .split("/")
+                          .map((v: string) => v.trim());
 
-                      return (
-                        <TableCell key={date} className="p-2">
-                          <div className="flex gap-3">
-                            <select
-                              value={rosterValue}
-                              onChange={(e) =>
-                                handleValueChange(
-                                  index,
-                                  date,
-                                  "roster",
-                                  e.target.value
-                                )
-                              }
-                              className={`w-[80px] h-[30px] rounded-lg ${getSelectStyle(
-                                "roster",
-                                rosterValue
-                              )}`}
-                            >
-                              {Object.values(roster).map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
-                            <select
-                              value={shiftValue}
-                              onChange={(e) =>
-                                handleValueChange(
-                                  index,
-                                  date,
-                                  "shift",
-                                  e.target.value
-                                )
-                              }
-                              className={`w-[100px] h-[30px] rounded-lg ${getSelectStyle(
-                                "shift",
-                                shiftValue
-                              )}`}
-                            >
-                              {Object.values(shifts).map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </TableCell>
-                      );
-                    })}
+                        return (
+                          <TableCell key={date} className="p-2">
+                            <div className="flex items-center gap-3">
+                              <div className="flex gap-3">
+                                <select
+                                  value={rosterValue}
+                                  onChange={(e) =>
+                                    handleValueChange(
+                                      index,
+                                      date,
+                                      "roster",
+                                      e.target.value
+                                    )
+                                  }
+                                  className={`w-[80px] h-[30px] rounded-lg ${getSelectStyle(
+                                    "roster",
+                                    rosterValue
+                                  )}`}
+                                >
+                                  {Object.values(roster).map((option) => (
+                                    <option key={option} value={option}>
+                                      {option}
+                                    </option>
+                                  ))}
+                                </select>
+                                <select
+                                  value={shiftValue}
+                                  onChange={(e) =>
+                                    handleValueChange(
+                                      index,
+                                      date,
+                                      "shift",
+                                      e.target.value
+                                    )
+                                  }
+                                  className={`w-[100px] h-[30px] rounded-lg ${getSelectStyle(
+                                    "shift",
+                                    shiftValue
+                                  )}`}
+                                >
+                                  {Object.values(shifts).map((option) => (
+                                    <option key={option} value={option}>
+                                      {option}
+                                    </option>
+                                  ))}
+                                </select>
+                                <LogHistoryTooltip
+                                  email={row.email}
+                                  date={date}
+                                />
+                              </div>
+                            </div>
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow className="w-full text-center">
+                    <TableCell colSpan={weekdays.length + 4} className="py-4">
+                      <div className="flex justify-center items-center">
+                        <div className="loader"></div>
+                      </div>
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>
