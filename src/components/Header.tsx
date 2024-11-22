@@ -1,8 +1,3 @@
-import { useState } from "react";
-import { DateRange } from "react-day-picker";
-import { DatePickerWithRange } from "./DateRange";
-import { Button } from "./ui/button";
-import { addDays } from "date-fns";
 import { Input } from "./ui/input";
 
 type HeaderProps = {

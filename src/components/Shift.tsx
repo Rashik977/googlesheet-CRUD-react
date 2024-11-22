@@ -16,7 +16,7 @@ import {
 import { Button } from "../components/ui/button";
 import { FormProvider, useForm } from "react-hook-form";
 import { ShiftData } from "../interfaces/IShiftData";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { LoadingCell } from "@/interfaces/ILoadingCell";
@@ -26,9 +26,6 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { dateConverter } from "@/utils/dateConverter";
 import { addShiftData, readShiftData, updateShiftData } from "@/api/ShiftAPI";
-import { Calendar } from "./ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { cn } from "@/lib/utils";
 
 interface ShiftProps {
   data: ShiftData[];
@@ -45,21 +42,12 @@ const Shift: React.FC<ShiftProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [email, setEmail] = useState("");
-  const [joinDate, setJoinDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [loadingCells, setLoadingCells] = useState<LoadingCell[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(),
   });
   const { handleSubmit } = useForm();
-
-  // const shiftOptions = [
-  //   "DAY_SHIFT",
-  //   "MORNING_SHIFT",
-  //   "EVENING_SHIFT",
-  //   "LATE_EVENING_SHIFT",
-  // ];
 
   const isLoading = (row: number, day: string) => {
     return loadingCells.some((cell) => cell.row === row && cell.day === day);
@@ -148,8 +136,6 @@ const Shift: React.FC<ShiftProps> = ({
 
       // Clear form fields
       setEmail("");
-      setJoinDate("");
-      setEndDate("");
     } catch {
       toast.error("Failed to add shift!");
     }
@@ -187,7 +173,7 @@ const Shift: React.FC<ShiftProps> = ({
 
             <FormField
               name="dateRange"
-              render={({ field }) => (
+              render={() => (
                 <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
                   <FormLabel className="font-semibold text-lg">
                     Start Date - End Date

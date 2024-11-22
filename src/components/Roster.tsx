@@ -199,7 +199,7 @@ const Roster: React.FC<RosterProps> = ({
           />
           <FormField
             name="dateRange"
-            render={({ field }) => (
+            render={() => (
               <FormItem className="flex flex-col sm:flex-row gap-6 items-center">
                 <FormLabel className="font-semibold text-lg">
                   Date Range

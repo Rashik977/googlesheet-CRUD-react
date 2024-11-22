@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Roster from "./components/Roster";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input"; // Add this import
 import Shift from "./components/Shift";
 import Header from "./components/Header";
 import { readRosterData } from "./api/RosterAPI";
@@ -12,7 +11,6 @@ import { readShiftData } from "./api/ShiftAPI";
 import { MainData } from "./interfaces/IMainData";
 import { readMainData } from "./api/MainAPI";
 import CombinedTable from "./components/CombinedTable";
-import { readLogData } from "./api/LogAPI";
 
 import { dateConverter } from "./utils/dateConverter";
 import { addDays } from "date-fns";
@@ -29,12 +27,10 @@ const App = () => {
   const [filteredShiftData, setFilteredShiftData] = useState<ShiftData[]>([]);
   const [mainData, setMainData] = useState<MainData[]>([]);
   const [startDate, setStartDate] = useState<string>(
-    // `${dateConverter(new Date().toISOString())}`
-    "2024-11-10"
+    `${dateConverter(new Date().toISOString())}`
   );
   const [endDate, setEndDate] = useState<string>(
-    "2024-11-30"
-    // `${dateConverter(addDays(new Date(), 7).toISOString())}`
+    `${dateConverter(addDays(new Date(), 7).toISOString())}`
   );
 
   useEffect(() => {

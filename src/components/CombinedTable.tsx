@@ -14,19 +14,14 @@ import { ShiftData } from "../interfaces/IShiftData";
 import { CombinedData } from "@/interfaces/ICombinedData";
 import { Button } from "./ui/button";
 import { LogEntry } from "@/interfaces/ILog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "react-toastify";
 import TruncatedCell from "./TruncatedCell";
 import { roster, shifts, weekdays } from "@/constants/constants";
 import { readLogData, setLogsData } from "@/api/LogAPI";
-import { ClockIcon } from "lucide-react";
 import { getSelectStyle } from "@/utils/getSelectStyle";
-import { formatDateTime } from "@/utils/formatDateTime";
+import { LogHistoryTooltip } from "./logHistoryToolTip";
+import { getWorkingDays } from "@/utils/getWorkingDays";
 
 interface CombinedTableProps {
   mainData: MainData[];
@@ -47,24 +42,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   const [originalData, setOriginalData] = useState<CombinedData[]>([]);
   const [logData, setLogData] = useState<LogEntry[]>([]);
   const [dateColumns, setDateColumns] = useState<string[]>([]);
-
-  // Helper function to get dates between range (excluding weekends)
-  const getWorkingDays = (start: string, end: string) => {
-    if (!start || !end) return [];
-    const dates: string[] = [];
-    const current = new Date(start);
-    const endDate = new Date(end);
-
-    while (current <= endDate) {
-      const day = current.getDay();
-      if (day !== 0 && day !== 6) {
-        // Skip Saturday (6) and Sunday (0)
-        dates.push(current.toISOString().split("T")[0]);
-      }
-      current.setDate(current.getDate() + 1);
-    }
-    return dates;
-  };
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -149,9 +126,9 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
             new Date(roster.startDate) <= currentDate &&
             new Date(roster.endDate) >= currentDate
           ) {
-            const [_, existingShift] = dailyData[date]
+            const existingShift = dailyData[date]
               .split("/")
-              .map((v) => v.trim());
+              .map((v) => v.trim())[1];
             if (roster[weekday as keyof RowData] === "WFO") {
               dailyData[date] = `WFO/ ${existingShift}`;
             } else if (
@@ -205,9 +182,9 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
         // Apply roster logs while preserving shift
         if (rosterLogs.length > 0) {
-          const [_, existingShift] = dailyData[date]
+          const existingShift = dailyData[date]
             .split("/")
-            .map((v) => v.trim());
+            .map((v) => v.trim())[1];
           dailyData[date] = `${rosterLogs[0].newValue}/ ${existingShift}`;
         }
 
@@ -262,13 +239,15 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
   const handleValueChange = (
     rowIndex: number,
-    day: string,
+    date: string,
+
     type: "roster" | "shift",
     value: string
   ) => {
     setCombinedData((prevData) => {
-      const newData = [...prevData] as any;
-      const currentValues = newData[rowIndex][day].split("/");
+      const newData = [...prevData] as CombinedData[];
+      const currentValues =
+        newData[rowIndex][date as keyof CombinedData].split("/");
 
       if (type === "roster") {
         currentValues[0] = value;
@@ -278,7 +257,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
       newData[rowIndex] = {
         ...newData[rowIndex],
-        [day]: currentValues.join("/"),
+        [date as keyof CombinedData]: currentValues.join("/"),
       };
 
       return newData;
@@ -290,14 +269,18 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
       toast.loading("Logging changes...");
       const changes: LogEntry[] = [];
 
-      combinedData.forEach((currentRow: any, index) => {
-        const originalRow = originalData[index] as any;
+      combinedData.forEach((currentRow: CombinedData, index) => {
+        const originalRow = originalData[index];
 
         dateColumns.forEach((date) => {
-          const [currentRoster, currentShift] = currentRow[date]
+          const [currentRoster, currentShift] = currentRow[
+            date as keyof CombinedData
+          ]
             .split("/")
             .map((v: string) => v.trim());
-          const [originalRoster, originalShift] = originalRow[date]
+          const [originalRoster, originalShift] = originalRow[
+            date as keyof CombinedData
+          ]
             .split("/")
             .map((v: string) => v.trim());
 
@@ -349,44 +332,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     }
   };
 
-  const LogHistoryTooltip = ({
-    email,
-    date,
-  }: {
-    email: string;
-    date: string;
-  }) => {
-    const logHistory = getLogHistoryForCell(email, date);
-
-    if (logHistory.length === 0) return null;
-
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="cursor-pointer">
-            <ClockIcon
-              size={16}
-              className="text-gray-500 hover:text-gray-700"
-            />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent className="max-w-[300px]">
-          <div className="text-xs">
-            {logHistory.map((log, idx) => (
-              <div key={idx} className="mb-1">
-                <span className="font-bold">{log.field}</span>:{log.oldValue} →{" "}
-                {log.newValue}
-                <span className="ml-2 text-gray-400">
-                  {formatDateTime(log.timestamp)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    );
-  };
-
   return (
     <div className="w-[95%] flex flex-col justify-center items-center">
       <TooltipProvider>
@@ -417,7 +362,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               </TableHeader>
               <TableBody>
                 {combinedData.length > 0 ? (
-                  combinedData.map((row: any, index) => (
+                  combinedData.map((row: CombinedData, index) => (
                     <TableRow key={index}>
                       <TableCell className="sticky left-0 bg-white z-10">
                         {row.email}
@@ -426,12 +371,17 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                         <TruncatedCell text={row.allocation} />
                       </TableCell>
                       {dateColumns.map((date) => {
-                        const [rosterValue, shiftValue] = (row[date] || "N/A/ ")
+                        const [rosterValue, shiftValue] = (
+                          row[date as keyof CombinedData] || "N/A/ "
+                        )
                           .split("/")
                           .map((v: string) => v.trim());
 
                         return (
-                          <TableCell key={date} className="p-2">
+                          <TableCell
+                            key={date}
+                            className="px-6 py-2 border-x-[1px] border-gray-200"
+                          >
                             <div className="flex items-center gap-3">
                               <div className="flex gap-3">
                                 <select
@@ -479,6 +429,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                                 <LogHistoryTooltip
                                   email={row.email}
                                   date={date}
+                                  getLogHistoryForCell={getLogHistoryForCell}
                                 />
                               </div>
                             </div>
