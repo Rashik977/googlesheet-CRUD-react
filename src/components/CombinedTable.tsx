@@ -133,8 +133,8 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
           "saturday",
         ][dayOfWeek].toLowerCase();
 
-        // Initialize dailyData to N/A
-        dailyData[date] = "N/A";
+        // Initialize with N/A for both roster and shift
+        dailyData[date] = "N/A/ N/A";
 
         // Check if the current date is within the shift's date range
         const currentDate = new Date(date);
@@ -149,13 +149,16 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
             new Date(roster.startDate) <= currentDate &&
             new Date(roster.endDate) >= currentDate
           ) {
+            const [_, existingShift] = dailyData[date]
+              .split("/")
+              .map((v) => v.trim());
             if (roster[weekday as keyof RowData] === "WFO") {
-              dailyData[date] = `WFO/ N/A`;
+              dailyData[date] = `WFO/ ${existingShift}`;
             } else if (
               roster[weekday as keyof RowData] === "WFH" &&
               dailyData[date].split("/")[0] !== "WFO"
             ) {
-              dailyData[date] = `WFH/ N/A`;
+              dailyData[date] = `WFH/ ${existingShift}`;
             }
           }
         });
@@ -163,24 +166,15 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
         // Handle shifts
         if (isWithinShiftDateRange) {
           const shiftValue = personShifts[weekday as keyof ShiftData];
-
           if (shiftValue && shiftValue !== "N/A") {
-            // If roster is N/A, set shift with N/A roster
-            if (dailyData[date].split("/")[0].trim() === "N/A") {
-              dailyData[date] = `N/A/ ${shiftValue}`;
-            } else {
-              // Replace shift part while keeping roster
-              const [rosterPart] = dailyData[date].split("/");
-              dailyData[date] = `${rosterPart}/ ${shiftValue}`;
-            }
+            const [existingRoster] = dailyData[date]
+              .split("/")
+              .map((v) => v.trim());
+            dailyData[date] = `${existingRoster}/ ${shiftValue}`;
           }
         }
 
-        // if (email === "apple4@yopmail.com") {
-        //   console.log(dailyData);
-        // }
-
-        // INDEPENDENT log tracking for roster and shift
+        // Handle logs - IMPORTANT: Keep track of both roster and shift separately
         const rosterLogs = logData
           .filter(
             (log) =>
@@ -209,15 +203,15 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               new Date(a.timestamp || "").getTime()
           );
 
-        // Override roster if log exists
+        // Apply roster logs while preserving shift
         if (rosterLogs.length > 0) {
-          const [existingShift] = dailyData[date]
+          const [_, existingShift] = dailyData[date]
             .split("/")
             .map((v) => v.trim());
           dailyData[date] = `${rosterLogs[0].newValue}/ ${existingShift}`;
         }
 
-        // Override shift if log exists
+        // Apply shift logs while preserving roster
         if (shiftLogs.length > 0) {
           const [existingRoster] = dailyData[date]
             .split("/")
