@@ -22,6 +22,7 @@ import { readLogData, setLogsData } from "@/api/LogAPI";
 import { getSelectStyle } from "@/utils/getSelectStyle";
 import { LogHistoryTooltip } from "./logHistoryToolTip";
 import { getWorkingDays } from "@/utils/getWorkingDays";
+import { useAuth } from "@/context/AuthContext";
 
 interface CombinedTableProps {
   mainData: MainData[];
@@ -42,6 +43,8 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   const [originalData, setOriginalData] = useState<CombinedData[]>([]);
   const [logData, setLogData] = useState<LogEntry[]>([]);
   const [dateColumns, setDateColumns] = useState<string[]>([]);
+
+  const { user } = useAuth();
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -295,7 +298,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               field: "roster",
               oldValue: originalRoster,
               newValue: currentRoster,
-              changedBy: "user@example.com", // Replace with actual user
+              changedBy: user.email, // Replace with actual user
               timestamp: new Date().toISOString(),
               date: date,
             });
@@ -308,7 +311,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               field: "shift",
               oldValue: originalShift,
               newValue: currentShift,
-              changedBy: "user@example.com", // Replace with actual user
+              changedBy: user.email, // Replace with actual user
               timestamp: new Date().toISOString(),
               date: date,
             });

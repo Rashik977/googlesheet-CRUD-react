@@ -48,7 +48,7 @@ const App = () => {
   }, []);
 
   return (
-    <>
+    <div>
       <Header
         startDate={startDate}
         setStartDate={setStartDate}
@@ -126,7 +126,7 @@ const App = () => {
         draggable
         pauseOnHover
       />
-    </>
+    </div>
   );
 };
 
