@@ -8,7 +8,6 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
-  console.log(user, loading);
   if (loading) {
     return <div>Loading...</div>; // Or your custom loading component
   }

@@ -2,23 +2,37 @@ import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { getUserRole } from "../api/RoleAPI";
 
 const Login = () => {
   const { login } = useAuth();
   let navigate = useNavigate();
 
-  const handleSuccess = (credentialResponse: CredentialResponse) => {
-    console.log(credentialResponse.credential);
-    const decoded = jwtDecode<{
-      email: string;
-    }>(credentialResponse.credential!);
+  const handleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      const decoded = jwtDecode<{
+        email: string;
+      }>(credentialResponse.credential!);
 
-    const userData = {
-      email: decoded.email,
-    };
+      const email = decoded.email;
 
-    login(userData);
-    navigate("/dashboard");
+      // Fetch role and permissions
+      const { role, permissions } = await getUserRole(email);
+
+      const userData = {
+        email,
+        role,
+        permissions,
+      };
+
+      // Save user data in context
+      login(userData);
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error fetching user role or permissions:", error);
+      alert("Login failed. Please contact your administrator.");
+    }
   };
 
   const handleError = () => {

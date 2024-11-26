@@ -21,9 +21,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+  const login = async (userData: User) => {
+    try {
+      const token = await generateTokenForUser(userData.email);
+      localStorage.setItem("authToken", token);
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  };
+
+  // Mock token generation (replace with real API call)
+  const generateTokenForUser = async (email: string): Promise<string> => {
+    // Simulate token response
+    return (
+      btoa(JSON.stringify({ email, exp: Date.now() + 3600 * 1000 })) +
+      ".signature"
+    );
   };
 
   const logout = () => {

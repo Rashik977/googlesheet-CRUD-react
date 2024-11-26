@@ -298,7 +298,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               field: "roster",
               oldValue: originalRoster,
               newValue: currentRoster,
-              changedBy: user.email, // Replace with actual user
+              changedBy: user!.email, // Replace with actual user
               timestamp: new Date().toISOString(),
               date: date,
             });
@@ -311,7 +311,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               field: "shift",
               oldValue: originalShift,
               newValue: currentShift,
-              changedBy: user.email, // Replace with actual user
+              changedBy: user!.email, // Replace with actual user
               timestamp: new Date().toISOString(),
               date: date,
             });
