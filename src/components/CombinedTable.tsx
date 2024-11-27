@@ -46,7 +46,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   const [dateColumns, setDateColumns] = useState<string[]>([]);
 
   const { user } = useAuth();
-
   // Permissions
   const canViewLogs = usePermission("view_logs");
   const canManageRoster = usePermission("manage_roster");
@@ -66,14 +65,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   }, []);
 
   useEffect(() => {
-    if (
-      mainData.length === 0 ||
-      rosterData.length === 0 ||
-      dateColumns.length === 0 ||
-      logData.length === 0
-    )
-      return;
-
     const combinedDataMap = new Map();
     const mainDataByEmail = mainData.slice(1).reduce((acc, curr) => {
       if (!acc.has(curr.email)) {
@@ -85,7 +76,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
     mainDataByEmail.forEach((personAllocations, email) => {
       const personShifts = shiftData.find((shift) => shift.email === email);
-
+      console.log(personShifts);
       const allProjectRosters = personAllocations.flatMap(
         (allocation: MainData) =>
           rosterData.filter(
@@ -230,16 +221,20 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     logData,
   ]);
 
-  console.log(canManageShift);
-
   const getLogHistoryForCell = (email: string, date: string) => {
-    let filteredData;
-    canManageRoster
-      ? (filteredData = logData.filter((log) => log.field == "roster"))
-      : null;
-    canManageShift
-      ? (filteredData = logData.filter((log) => log.field == "shift"))
-      : null;
+    let filteredData: LogEntry[] = [];
+    if (canManageRoster) {
+      filteredData = [
+        ...filteredData,
+        ...logData.filter((log) => log.field == "roster"),
+      ];
+    }
+    if (canManageShift) {
+      filteredData = [
+        ...filteredData,
+        ...logData.filter((log) => log.field == "shift"),
+      ];
+    }
 
     return filteredData!
       .filter(
@@ -254,7 +249,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
       )
       .slice(0, 3);
   };
-
   const handleValueChange = (
     rowIndex: number,
     date: string,
@@ -361,10 +355,10 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
               </TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableCell className="sticky left-0 bg-white z-10">
+                  <TableCell className="sticky left-0 bg-white">
                     Email
                   </TableCell>
-                  <TableCell className="sticky left-[150px] bg-white z-10">
+                  <TableCell className="sticky left-[150px] bg-white">
                     Allocation
                   </TableCell>
                   {dateColumns.map((date) => (
@@ -382,10 +376,10 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                 {combinedData.length > 0 ? (
                   combinedData.map((row: CombinedData, index) => (
                     <TableRow key={index}>
-                      <TableCell className="sticky left-0 bg-white z-10">
+                      <TableCell className="sticky left-0 bg-white ">
                         {row.email}
                       </TableCell>
-                      <TableCell className="sticky left-[150px] bg-white z-10">
+                      <TableCell className="sticky left-[150px] bg-white ">
                         <TruncatedCell text={row.allocation} />
                       </TableCell>
                       {dateColumns.map((date) => {

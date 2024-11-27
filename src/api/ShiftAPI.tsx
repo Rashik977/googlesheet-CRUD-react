@@ -1,16 +1,17 @@
 import { API_URL } from "@/config";
 import { ShiftData } from "@/interfaces/IShiftData";
-import axios from "axios";
+import api from "./api";
 
 const module = "shift";
 
 // Fetch data from Google Sheets
 export const readShiftData = async () => {
   try {
-    const response = await axios.get(API_URL, {
+    const response = await api.get(API_URL, {
       params: {
         module: module,
         action: "read",
+        permission: "manage_shifts",
       },
     });
     const fetchedData = response.data.map((row: string[]) => ({
@@ -26,13 +27,14 @@ export const readShiftData = async () => {
     return fetchedData;
   } catch (error) {
     console.error("Error fetching data:", error);
+    throw error;
   }
 };
 
 // Function to add data to Google Sheets
 export const addShiftData = async (shiftData: ShiftData) => {
   try {
-    await axios.get(API_URL, {
+    await api.get(API_URL, {
       params: {
         module: module,
         action: "create",
@@ -59,7 +61,7 @@ export const updateShiftData = async (
   value: string
 ) => {
   try {
-    await axios.get(API_URL, {
+    await api.get(API_URL, {
       params: {
         module: module,
         action: "update",
@@ -74,10 +76,9 @@ export const updateShiftData = async (
   }
 };
 
-// Function to delete data from Google Sheets
 export const deleteShiftData = async (id: number) => {
   try {
-    await axios.get(API_URL, {
+    await api.get(API_URL, {
       params: {
         module: module,
         action: "delete",

@@ -1,11 +1,10 @@
 import { API_URL } from "@/config";
 import { LogEntry } from "@/interfaces/ILog";
-import axios from "axios";
-
+import api from "./api";
 const module = "log";
 
 export const setLogsData = async (changes: LogEntry[]) => {
-  await axios.get(API_URL, {
+  await api.get(API_URL, {
     params: {
       module: module,
       action: "log",
@@ -16,7 +15,7 @@ export const setLogsData = async (changes: LogEntry[]) => {
 
 export const readLogData = async () => {
   try {
-    const response = await axios.get(API_URL, {
+    const response = await api.get(API_URL, {
       params: { module: module, action: "read" },
     });
     const fetchedData = response.data.map((row: string[]) => ({

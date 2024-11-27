@@ -1,9 +1,9 @@
 // api/RoleAPI.ts
 import { API_URL } from "@/config";
-import axios from "axios";
+import api from "./api";
 
 export const getUserRole = async (email: string) => {
-  const response = await axios.get(API_URL, {
+  const response = await api.get(API_URL, {
     params: {
       module: "role",
       email,

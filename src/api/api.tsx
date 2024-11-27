@@ -1,4 +1,3 @@
-// api.tsx - Axios instance with interceptors
 import { API_URL } from "@/config";
 import axios from "axios";
 

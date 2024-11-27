@@ -1,4 +1,4 @@
-import api from "./api"; // Import the Axios instance with interceptors
+import api from "./api";
 import { API_URL } from "@/config";
 import { RowData } from "@/interfaces/IRowData";
 
