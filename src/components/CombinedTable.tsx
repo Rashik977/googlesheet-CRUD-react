@@ -23,6 +23,7 @@ import { getSelectStyle } from "@/utils/getSelectStyle";
 import { LogHistoryTooltip } from "./logHistoryToolTip";
 import { getWorkingDays } from "@/utils/getWorkingDays";
 import { useAuth } from "@/context/AuthContext";
+import { usePermission } from "@/hooks/usePermission";
 
 interface CombinedTableProps {
   mainData: MainData[];
@@ -45,6 +46,11 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   const [dateColumns, setDateColumns] = useState<string[]>([]);
 
   const { user } = useAuth();
+
+  // Permissions
+  const canViewLogs = usePermission("view_logs");
+  const canManageRoster = usePermission("manage_roster");
+  const canManageShift = usePermission("manage_shifts");
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -78,7 +84,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     }, new Map());
 
     mainDataByEmail.forEach((personAllocations, email) => {
-      // Find shifts specific to this email
       const personShifts = shiftData.find((shift) => shift.email === email);
 
       const allProjectRosters = personAllocations.flatMap(
@@ -225,8 +230,18 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
     logData,
   ]);
 
+  console.log(canManageShift);
+
   const getLogHistoryForCell = (email: string, date: string) => {
-    return logData
+    let filteredData;
+    canManageRoster
+      ? (filteredData = logData.filter((log) => log.field == "roster"))
+      : null;
+    canManageShift
+      ? (filteredData = logData.filter((log) => log.field == "shift"))
+      : null;
+
+    return filteredData!
       .filter(
         (log) =>
           log.email === email &&
@@ -386,7 +401,7 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                             className="px-6 py-2 border-x-[1px] border-gray-200"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="flex gap-3">
+                              {canManageRoster ? (
                                 <select
                                   value={rosterValue}
                                   onChange={(e) =>
@@ -408,6 +423,8 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                                     </option>
                                   ))}
                                 </select>
+                              ) : null}
+                              {canManageShift ? (
                                 <select
                                   value={shiftValue}
                                   onChange={(e) =>
@@ -429,12 +446,12 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
                                     </option>
                                   ))}
                                 </select>
-                                <LogHistoryTooltip
-                                  email={row.email}
-                                  date={date}
-                                  getLogHistoryForCell={getLogHistoryForCell}
-                                />
-                              </div>
+                              ) : null}
+                              <LogHistoryTooltip
+                                email={row.email}
+                                date={date}
+                                getLogHistoryForCell={getLogHistoryForCell}
+                              />
                             </div>
                           </TableCell>
                         );
@@ -455,10 +472,11 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
           </div>
         </div>
       </TooltipProvider>
-
-      <Button className="m-4 w-16 flex-end p-5" onClick={handleLog}>
-        LOG
-      </Button>
+      {(canManageRoster || canManageShift || canViewLogs) && (
+        <Button className="m-4 w-16 flex-end p-5" onClick={handleLog}>
+          LOG
+        </Button>
+      )}
     </div>
   );
 };

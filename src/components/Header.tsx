@@ -1,4 +1,7 @@
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useNavigate } from "react-router-dom";
 
 type HeaderProps = {
   startDate: string;
@@ -13,8 +16,15 @@ const Header = ({
   endDate,
   setEndDate,
 }: HeaderProps) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
   return (
-    <header className="bg-white shadow-lg">
+    <header className="bg-white shadow-lg sticky top-0 z-10">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
@@ -41,6 +51,7 @@ const Header = ({
               className="w-40"
             />
           </div>
+          <Button onClick={handleLogout}>Logout</Button>
         </div>
       </div>
     </header>

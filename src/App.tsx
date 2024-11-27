@@ -15,6 +15,7 @@ import CombinedTable from "./components/CombinedTable";
 import { dateConverter } from "./utils/dateConverter";
 import { addDays } from "date-fns";
 
+import { usePermission } from "@/hooks/usePermission";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -32,6 +33,11 @@ const App = () => {
   const [endDate, setEndDate] = useState<string>(
     `${dateConverter(addDays(new Date(), 7).toISOString())}`
   );
+
+  // Permissions
+  const canViewLogs = usePermission("view_logs");
+  const canManageRoster = usePermission("manage_roster");
+  const canManageShift = usePermission("manage_shifts");
 
   useEffect(() => {
     readRosterData().then((fetchedData) => {
@@ -56,65 +62,71 @@ const App = () => {
         setEndDate={setEndDate}
       />
 
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <div className="relative">
-          {/* Bookmark Button */}
-          <SheetTrigger>
-            <Button
-              variant="outline"
-              className={`bg-black rounded-none hover:bg-gray-500 hover:text-white text-white absolute -right-7 top-[3rem] transform -translate-y-1/2 rotate-90 transition-transform duration-300 h-10 w-24 ${
-                isOpen ? "translate-x-[-60vw]" : ""
-              }`}
-            >
-              Roster
-            </Button>
-          </SheetTrigger>
+      {/* Render Roster if the user has permissions */}
+      {canManageRoster && (
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <div className="relative">
+            <SheetTrigger>
+              <Button
+                variant="outline"
+                className={`bg-black rounded-none hover:bg-gray-500 hover:text-white text-white absolute -right-7 top-[3rem] transform -translate-y-1/2 rotate-90 transition-transform duration-300 h-10 w-24 ${
+                  isOpen ? "translate-x-[-60vw]" : ""
+                }`}
+              >
+                Roster
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-[60%] h-full overflow-auto">
+              <Roster
+                data={rosterData}
+                filteredData={filteredRosterData}
+                setFilteredData={setFilteredRosterData}
+                setData={setRosterData}
+              />
+            </SheetContent>
+          </div>
+        </Sheet>
+      )}
 
-          {/* Slide-in Sheet Content */}
-          <SheetContent className="w-[60%] h-full overflow-auto">
-            <Roster
-              data={rosterData}
-              filteredData={filteredRosterData}
-              setFilteredData={setFilteredRosterData}
-              setData={setRosterData}
-            />
-          </SheetContent>
+      {/* Render Shift if the user has permissions */}
+      {canManageShift && (
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <div className="relative">
+            <SheetTrigger className="w-full flex justify-end">
+              <Button
+                variant="outline"
+                className={`bg-black rounded-none hover:bg-gray-500 hover:text-white text-white absolute -right-7 top-[8rem] transform -translate-y-1/2 rotate-90 transition-transform duration-300 h-10 w-24 ${
+                  isSheetOpen ? "translate-x-[-60vw]" : ""
+                }`}
+              >
+                Shift
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-[60%] h-full overflow-auto">
+              <Shift
+                data={shiftData}
+                filteredData={filteredShiftData}
+                setData={setShiftData}
+                setFilteredData={setFilteredShiftData}
+              />
+            </SheetContent>
+          </div>
+        </Sheet>
+      )}
+
+      {/* Combined Table */}
+      {canViewLogs && (
+        <div className="flex flex-col items-center gap-7">
+          <CombinedTable
+            mainData={mainData}
+            rosterData={canManageRoster ? rosterData : []}
+            shiftData={canManageShift ? shiftData : []}
+            startDate={startDate}
+            endDate={endDate}
+          />
         </div>
-      </Sheet>
+      )}
 
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <div className="relative">
-          <SheetTrigger className="w-full flex justify-end">
-            <Button
-              variant="outline"
-              className={`bg-black rounded-none hover:bg-gray-500 hover:text-white text-white absolute -right-7 top-[8rem] transform -translate-y-1/2 rotate-90 transition-transform duration-300 h-10 w-24 ${
-                isSheetOpen ? "translate-x-[-60vw]" : ""
-              }`}
-            >
-              Shift
-            </Button>
-          </SheetTrigger>
-
-          <SheetContent className="w-[60%] h-full overflow-auto">
-            <Shift
-              data={shiftData}
-              filteredData={filteredShiftData}
-              setData={setShiftData}
-              setFilteredData={setFilteredShiftData}
-            />
-          </SheetContent>
-        </div>
-      </Sheet>
-
-      <div className="flex flex-col items-center gap-7">
-        <CombinedTable
-          mainData={mainData}
-          rosterData={rosterData}
-          shiftData={shiftData}
-          startDate={startDate}
-          endDate={endDate}
-        />
-      </div>
       <ToastContainer
         position="top-right"
         autoClose={3000}

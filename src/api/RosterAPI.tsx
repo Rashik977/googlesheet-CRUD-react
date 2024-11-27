@@ -1,16 +1,17 @@
+import api from "./api"; // Import the Axios instance with interceptors
 import { API_URL } from "@/config";
 import { RowData } from "@/interfaces/IRowData";
-import axios from "axios";
 
 const module = "roster";
 
 // Fetch data from Google Sheets
 export const readRosterData = async () => {
   try {
-    const response = await axios.get(API_URL, {
+    const response = await api.get(API_URL, {
       params: {
         module: module,
         action: "read",
+        permission: "manage_roster",
       },
     });
     const fetchedData = response.data.map((row: string[]) => ({
@@ -27,13 +28,14 @@ export const readRosterData = async () => {
     return fetchedData;
   } catch (error) {
     console.error("Error fetching data:", error);
+    throw error; // Propagate error for higher-level handling
   }
 };
 
 // Function to add data to Google Sheets
 export const addRosterData = async (rowData: RowData) => {
   try {
-    await axios.get(API_URL, {
+    await api.get(API_URL, {
       params: {
         module: module,
         action: "create",
@@ -51,6 +53,7 @@ export const addRosterData = async (rowData: RowData) => {
     console.log("Data added successfully");
   } catch (error) {
     console.error("Error adding data:", error);
+    throw error;
   }
 };
 
@@ -61,7 +64,7 @@ export const updateRosterData = async (
   value: string
 ) => {
   try {
-    await axios.get(API_URL, {
+    await api.get(API_URL, {
       params: {
         module: module,
         action: "update",
@@ -73,13 +76,14 @@ export const updateRosterData = async (
     console.log("Cell updated successfully");
   } catch (error) {
     console.error("Error updating cell:", error);
+    throw error;
   }
 };
 
 // Function to delete data from Google Sheets
 export const deleteRosterData = async (id: number) => {
   try {
-    await axios.get(API_URL, {
+    await api.get(API_URL, {
       params: {
         module: module,
         action: "delete",
@@ -89,5 +93,6 @@ export const deleteRosterData = async (id: number) => {
     console.log("Data deleted successfully");
   } catch (error) {
     console.error("Error deleting data:", error);
+    throw error;
   }
 };
