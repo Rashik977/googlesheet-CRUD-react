@@ -46,10 +46,12 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   const [dateColumns, setDateColumns] = useState<string[]>([]);
 
   const { user } = useAuth();
+
   // Permissions
   const canViewLogs = usePermission("view_logs");
   const canManageRoster = usePermission("manage_roster");
   const canManageShift = usePermission("manage_shifts");
+  const canManageSpecificRoster = usePermission("manage_specific_roster");
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -65,6 +67,24 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   }, []);
 
   useEffect(() => {
+    if (canManageSpecificRoster) {
+      if (mainData && mainData.length > 1) {
+        const userProjectLeaderships = rosterData
+          .filter((roster) => roster.projectLeader === user?.email)
+          .map((roster) => roster.projectName.trim());
+
+        const filteredMainData = mainData.filter(
+          (data) =>
+            data.allocation &&
+            userProjectLeaderships.some(
+              (leadership) => data.allocation.trim() === leadership
+            )
+        );
+
+        mainData = [mainData[0], ...filteredMainData];
+      }
+    }
+
     const combinedDataMap = new Map();
     const mainDataByEmail = mainData.slice(1).reduce((acc, curr) => {
       if (!acc.has(curr.email)) {
@@ -76,7 +96,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
 
     mainDataByEmail.forEach((personAllocations, email) => {
       const personShifts = shiftData.find((shift) => shift.email === email);
-      console.log(personShifts);
       const allProjectRosters = personAllocations.flatMap(
         (allocation: MainData) =>
           rosterData.filter(
