@@ -60,7 +60,6 @@ const CombinedTable: React.FC<CombinedTableProps> = ({
   }, [startDate, endDate]);
 
   useEffect(() => {
-    // Fetch log data when component mounts
     readLogData().then((fetchedLogData) => {
       setLogData(fetchedLogData);
     });

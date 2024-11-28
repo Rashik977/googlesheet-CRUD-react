@@ -18,6 +18,7 @@ import { addDays } from "date-fns";
 import { usePermission } from "@/hooks/usePermission";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "./context/AuthContext";
 
 const App = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,24 +35,40 @@ const App = () => {
     `${dateConverter(addDays(new Date(), 7).toISOString())}`
   );
 
+  const { user } = useAuth();
   // Permissions
   const canViewLogs = usePermission("view_logs");
   const canManageRoster = usePermission("manage_roster");
   const canManageShift = usePermission("manage_shifts");
+  const canManageSpecificRoster = usePermission("manage_specific_roster");
 
   useEffect(() => {
     readRosterData().then((fetchedData) => {
-      setRosterData(fetchedData);
-      setFilteredRosterData(fetchedData);
+      let processedRosterData = fetchedData;
+
+      if (canManageSpecificRoster && user?.email) {
+        // Filter roster data to only include projects where user is project leader
+        processedRosterData = [
+          fetchedData[0], // Keep the first row (header)
+          ...fetchedData
+            .slice(1)
+            .filter((roster: RowData) => roster.projectLeader === user.email),
+        ];
+      }
+
+      setRosterData(processedRosterData);
+      setFilteredRosterData(processedRosterData);
     });
+
     readShiftData().then((fetchedData) => {
       setShiftData(fetchedData);
       setFilteredShiftData(fetchedData);
     });
+
     readMainData().then((fetchedData) => {
       setMainData(fetchedData);
     });
-  }, []);
+  }, [user, canManageSpecificRoster]);
 
   return (
     <div>
